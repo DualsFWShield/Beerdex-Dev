@@ -1,5 +1,5 @@
 import * as Storage from './storage.js';
-import { GUIDE_HTML } from './beerpedia/guide_content.js';
+
 
 // We assume global libs: QRCode, Html5QrcodeScanner (handled via CDN)
 const QRCodeLib = window.QRCode;
@@ -125,161 +125,13 @@ window.removeImageBackground = function (img) {
 };
 
 // Guide Render
-export function renderGuide(container) {
-    container.innerHTML = GUIDE_HTML;
-    window.scrollTo(0, 0);
 
-    // Initialize Interactive Elements
-    setupQuiz();
-    setupStyleMap();
-
-    // Bind "See details" buttons dynamically if we add them via JS strings
-    // But since GUIDE_HTML is static string, we might need to add onclicks there or here.
-    // Ideally we put onclick="navigateToArticle('id')" in HTML but that requires exposing it to window (done in app.js).
-}
 
 // Article Render
-export function renderArticle(container, articleId) {
-    const article = ARTICLES[articleId];
-    if (!article) return;
-
-    window.scrollTo(0, 0);
-
-    container.innerHTML = `
-        <div class="article-container fade-in">
-            <button id="btn-back-guide" class="btn-back">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Retour au Guide
-            </button>
-            
-            <header class="article-header">
-                <div class="article-icon">🍺</div>
-                <h1>${article.title}</h1>
-                <p class="subtitle">${article.subtitle}</p>
-            </header>
-
-            <div class="article-content">
-                ${article.content}
-            </div>
-
-            <div style="height: 100px;"></div>
-        </div>
-    `;
-
-    document.getElementById('btn-back-guide').onclick = () => {
-        window.dispatchEvent(new CustomEvent('nav-request', { detail: { view: 'guide' } }));
-    };
-}
 
 
-function setupStyleMap() {
-    document.querySelectorAll('.beer-dot').forEach(dot => {
-        dot.addEventListener('click', () => {
-            // Reset all
-            document.querySelectorAll('.beer-dot').forEach(d => d.classList.remove('active'));
-            dot.classList.add('active');
-            showToast(`Style : ${dot.dataset.label}`);
-        });
-    });
-}
 
-function setupQuiz() {
-    const container = document.getElementById('quiz-container');
-    if (!container) return;
 
-    const startDiv = document.getElementById('quiz-start');
-    const qDiv = document.getElementById('quiz-question');
-    const resDiv = document.getElementById('quiz-result');
-    const qText = document.getElementById('q-text');
-    const qOpts = document.getElementById('q-options');
-
-    const questions = [
-        {
-            id: 1,
-            text: "C'est votre première fois ?",
-            opts: [
-                { text: "Oui, je débute", next: 2 },
-                { text: "Non, je connais un peu", next: 3 }
-            ]
-        },
-        {
-            id: 2, // Beginner path
-            text: "Vous préférez quoi comme goût ?",
-            opts: [
-                { text: "Léger et rafraîchissant", res: { title: "Lager / Pils", desc: "La valeur sûre. Fraîche, pétillante, sans prise de tête." } },
-                { text: "Sucré et fruité", res: { title: "Blanche / Fruitée", desc: "Des notes d'agrumes ou de fruits rouges, peu d'amertume." } }
-            ]
-        },
-        {
-            id: 3, // Expert path
-            text: "Votre position sur l'amertume ?",
-            opts: [
-                { text: "J'adore ça !", next: 4 },
-                { text: "Pas trop mon truc", next: 5 }
-            ]
-        },
-        {
-            id: 4, // Bitter lover
-            text: "Et la puissance ?",
-            opts: [
-                { text: "Plutôt léger (Session)", res: { title: "Session IPA", desc: "Tout le goût du houblon, mais léger en alcool." } },
-                { text: "Fort et intense", res: { title: "Imperial IPA", desc: "Une explosion de saveurs et une bonne dose d'alcool." } }
-            ]
-        },
-        {
-            id: 5, // Malt lover
-            text: "Café/Chocolat ou Caramel/Epices ?",
-            opts: [
-                { text: "Café / Noir", res: { title: "Stout / Porter", desc: "Des bières sombres, torréfiées, parfaites pour déguster." } },
-                { text: "Caramel / Rondeur", res: { title: "Triple Belge", desc: "Ronde, chaleureuse, avec des notes de fruits mûrs." } }
-            ]
-        }
-    ];
-
-    let currentQ = 1;
-
-    const showQuestion = (id) => {
-        const q = questions.find(x => x.id === id);
-        if (!q) return;
-
-        qText.innerText = q.text;
-        qOpts.innerHTML = '';
-
-        q.opts.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-primary';
-            btn.style.margin = '5px';
-            btn.innerText = opt.text;
-            btn.onclick = () => {
-                if (opt.next) {
-                    showQuestion(opt.next);
-                } else if (opt.res) {
-                    showResult(opt.res);
-                }
-            };
-            qOpts.appendChild(btn);
-        });
-
-        startDiv.classList.add('hidden');
-        qDiv.classList.remove('hidden');
-    };
-
-    const showResult = (res) => {
-        qDiv.classList.add('hidden');
-        resDiv.classList.remove('hidden');
-        document.getElementById('res-title').innerText = res.title;
-        document.getElementById('res-desc').innerText = res.desc;
-    };
-
-    document.getElementById('btn-quiz-start').onclick = () => showQuestion(1);
-    document.getElementById('btn-quiz-reset').onclick = () => {
-        resDiv.classList.add('hidden');
-        startDiv.classList.remove('hidden');
-    };
-}
 
 
 export function renderBeerList(beers, container, filters = null, showCreatePrompt = false, isDiscoveryCallback = null, isAppend = false) {

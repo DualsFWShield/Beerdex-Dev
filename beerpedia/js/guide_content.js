@@ -1,5 +1,5 @@
 export const GUIDE_HTML = `
-<div class="guide-container fade-in">
+<div class="guide-container">
     <header class="guide-header">
         <h1>Beerpedia</h1>
         <p class="subtitle">Comprendre, Choisir, Déguster.</p>

@@ -346,16 +346,8 @@ function renderCurrentView() {
 }
 
 // Global Nav Request Handler (from UI back buttons)
-window.addEventListener('nav-request', (e) => {
-    state.view = e.detail.view;
-    if (e.detail.articleId) state.currentArticleId = e.detail.articleId;
-    renderCurrentView();
-});
+
 
 // Expose navigation for inline HTML (Guide buttons)
-window.navigateToArticle = (id) => {
-    state.view = 'article';
-    state.currentArticleId = id;
-    renderCurrentView();
-};
+
 
