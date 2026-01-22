@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ffc107">
+    <title>Beerdex - Dev Build</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <script src="js/vendor/lz-string.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="app">
+        <header class="app-header">
+            <div class="logo">
+                <img src="icons/logo-bnr.png" width="32" height="32" alt="Beerdex Logo">
+                <h1>Beerdex <span style="font-size:0.7rem; color:var(--accent-gold); vertical-align:top;">DEV</span>
+                </h1>
+            </div>
+            <!-- Clean Header -->
+        </header>
+
+        <main id="main-content" class="scroll-container">
+            <!-- Dynamic Content Injected Here -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Chargement...</p>
+            </div>
+        </main>
+
+        <!-- Navigation Bar -->
+        <nav class="bottom-nav">
+            <button type="button" class="nav-item active" data-view="home" aria-label="Accueil">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dex</span>
+            </button>
+            <a href="beerpedia.html" class="nav-item" aria-label="Beerpedia" style="text-decoration:none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <span>Beerpedia</span>
+            </a>
+            <a href="editor.html" class="nav-item" aria-label="Éditeur" style="text-decoration:none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>Éditeur</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modals/Overlays -->
+    <div id="modal-container" class="modal-overlay hidden" aria-hidden="true"></div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
