@@ -4,6 +4,13 @@ const mainContent = document.getElementById('main-content');
 
 // Init
 function init() {
+    // Check for first launch of Beerpedia
+    if (!localStorage.getItem('beerpedia_intro_seen')) {
+        localStorage.setItem('beerpedia_intro_seen', 'true');
+        window.location.href = 'articles/intro.html';
+        return;
+    }
+
     renderGuide(mainContent);
 }
 

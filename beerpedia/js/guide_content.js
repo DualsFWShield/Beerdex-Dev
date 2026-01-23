@@ -3,6 +3,9 @@ export const GUIDE_HTML = `
     <header class="guide-header">
         <h1>Beerpedia</h1>
         <p class="subtitle">Comprendre, Choisir, Déguster.</p>
+        <div style="margin-top: 15px;">
+            <a href="articles/intro.html" class="btn-small-outline" style="border-radius:20px; padding: 6px 16px;">📖 Intro & Origines</a>
+        </div>
     </header>
 
     <section class="guide-section" id="beer-types">
