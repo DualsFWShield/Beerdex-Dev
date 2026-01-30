@@ -1,29 +1,29 @@
+# 📚 Beerpedia
 
-# Beerdex - The Ultimate Beer Companion
+**L'Encyclopédie de la Bière**
 
-## 🚀 Nouvelle étape : Beerpedia "Plug-and-Play" & Super Éditeur
+Beerpedia est un site statique dédié à la découverte des différents styles de bières, leur histoire, et des conseils de dégustation.
 
-**Isolation Complète**
-- Le module **Beerpedia** est désormais 100% autonome dans son dossier `/beerpedia`.
-- Il peut être copié-collé dans n'importe quel autre projet web sans dépendance externe.
-- Chaque article exporté est un fichier HTML unique avec son propre runtime JS (zoom image, animations) et CSS.
+## ✨ Fonctionnalités
 
-**Éditeur d'Article 2.0**
-- **Formatage Riche** : Ajout des boutons Gras, Italique, Souligné, Barré, Petit texte.
-- **Bloc Signature** : Nouveau bloc visuel pour afficher les specs (Volume, ABV, Type).
-- **Méta-données** : Ajout des champs Auteur et Fonction.
-- **Aperçu Live** : L'aperçu reflète exactement le rendu final.
+*   **Catalogue de Styles** : Découvrez les grandes familles de bières (Lager, IPA, Stout, Trappiste, etc.).
+*   **Recherche** : Filtrez les styles par nom ou par tag (ex: "Amère", "Légère").
+*   **Article Aléatoire** : Laissez-vous surprendre par un style au hasard.
+*   **Quiz Interactif** : Trouvez la bière qui vous correspond.
+*   **PWA** : Installez l'application sur votre téléphone pour un accès hors-ligne.
+
+## 🔗 Lien vers Beerdex
+
+Beerpedia est un projet compagnon de **Beerdex**, l'application de suivi de dégustation de bières.
+
+➡️ [**Accéder à Beerdex**](https://beerdex.dualsfwshield.be)
+
+## 🛠️ Stack Technique
+
+*   HTML, CSS Vanilla, JavaScript ES6+
+*   Aucune dépendance externe (0$ Stack)
+*   Déployable sur GitHub Pages
 
 ---
 
-## Fonctionnalités Clés
-- **Scanner QR Code** : Scannez vos bières pour les ajouter (ou voir infos).
-- **Listing & Filtres** : Tri par alcool, brasserie, note, favoris...
-- **Mode Découverte** : Masque les bières non bues pour garder le mystère.
-- **Statistiques** : Graphiques de consommation et cartes de styles.
-- **PWA** : Installable sur mobile, fonctionne hors-ligne.
-- **Beerpedia** : Guide interactif et encyclopédie de la bière.
-
-## Installation
-Simplement ouvrir `index.html` dans un navigateur ou héberger sur GitHub Pages.
-Le dossier `beerpedia/` contient sa propre page d'accueil `index.html` accessible depuis l'app principale. 
+Fait avec 🍺 par DualsFWShield.

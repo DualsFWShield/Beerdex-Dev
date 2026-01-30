@@ -1,353 +1,235 @@
-import * as Data from './data.js';
-import * as UI from './ui.js';
-import * as Storage from './storage.js';
+import { GUIDE_HTML } from './guide_content.js';
+import { ARTICLES } from './data.js';
 
-// Expose UI for inline HTML event handlers
-window.UI = UI;
-window.showToast = UI.showToast;
+const mainContent = document.getElementById('main-content');
 
-// App State
-const state = {
-    beers: [],
-    filteredBeers: [], // Cache for filtered results
-    filter: '',
-    activeFilters: {},
-    view: 'home', // home
-    pagination: {
-        page: 1,
-        itemsPerPage: 24,
-        hasMore: true
-    },
-    observer: null // Store observer to disconnect if needed
-};
-
-// Initialize Application
-async function init() {
-    try {
-        // Load Data
-        const staticBeers = await Data.fetchAllBeers();
-        const customBeers = Storage.getCustomBeers();
-        state.beers = [...customBeers, ...staticBeers];
-
-        // Initial Render
-        renderCurrentView();
-
-        // Setup Event Listeners
-        setupEventListeners();
-
-        // Check Welcome
-        UI.checkAndShowWelcome();
-
-    } catch (error) {
-        console.error("Failed to initialize Beerdex:", error);
-        UI.showToast("Erreur de chargement des données.");
+// Init
+function init() {
+    // Check for first launch of Beerpedia
+    if (!localStorage.getItem('beerpedia_intro_seen')) {
+        localStorage.setItem('beerpedia_intro_seen', 'true');
+        window.location.href = 'articles/intro.html';
+        return;
     }
+
+    renderGuide(mainContent);
 }
 
-function loadMoreBeers(container, isAppend = false, isDiscoveryMode = false, showCreatePrompt = false) {
-    const { page, itemsPerPage } = state.pagination;
-    const start = (page - 1) * itemsPerPage;
-    const end = page * itemsPerPage;
+// --- Dynamic Rendering ---
 
-    // Slice data
-    const batch = state.filteredBeers.slice(start, end);
+function renderGuide(container) {
+    container.innerHTML = GUIDE_HTML;
+    window.scrollTo(0, 0);
 
-    if (batch.length < itemsPerPage) {
-        state.pagination.hasMore = false;
-    }
+    // Render Articles (Initial Load - All)
+    renderArticles();
 
-    // Call UI Render
-    // If it's discovery mode and empty, we might need special handling passed to UI
-    UI.renderBeerList(batch, container, state.activeFilters, showCreatePrompt, () => {
-        // Handle "Create" click from empty state
-        UI.renderAddBeerForm((newBeer) => {
-            Storage.saveCustomBeer(newBeer);
-            state.beers.unshift(newBeer);
-            state.filter = ''; // Reset filter after add? or keep it?
-            renderCurrentView();
-            UI.closeModal();
-            UI.showToast("Bière ajoutée !");
-        }, state.filter);
-    }, isAppend);
-
-    // Setup Sentinel for IntersectionObserver if there is more data
-    if (state.pagination.hasMore) {
-        setupInfiniteScroll(container);
-    }
+    // Initialize Interactive Elements
+    setupSearch();
+    setupRandom();
+    setupQuiz();
+    setupStyleMap();
 }
 
-function setupInfiniteScroll(container) {
-    // We need to ensure the sentinel is AFTER the beer-grid.
-    // If container == main-content, and it contains .beer-grid, we append sentinel to main-content.
+function renderArticles(filter = '') {
+    const grid = document.getElementById('beer-type-grid');
+    if (!grid) return;
 
-    let sentinel = document.getElementById('scroll-sentinel');
-    if (!sentinel) {
-        sentinel = document.createElement('div');
-        sentinel.id = 'scroll-sentinel';
-        // Make it invisible but present
-        sentinel.style.height = '20px';
-        sentinel.style.width = '100%';
-        sentinel.style.clear = 'both'; // Ensure it drops below floated elements if any
-        container.appendChild(sentinel);
-    } else {
-        // Move to very end
-        container.appendChild(sentinel);
-    }
+    grid.innerHTML = '';
 
-    if (!state.observer) {
-        state.observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && state.pagination.hasMore) {
-                // Debounce slightly to prevent rapid firing
-                if (state.isLoadingMore) return;
-                state.isLoadingMore = true;
+    // Normalize filter
+    const term = filter.toLowerCase().trim();
 
-                state.pagination.page++;
-                const isDiscovery = Storage.getPreference('discoveryMode', false);
+    // Filter Logic
+    const filtered = ARTICLES.filter(art => {
+        // Exclude Intro from grid unless searching specifically? 
+        // Let's keep Intro hidden from grid normally, only show styles.
+        // Actually, users might want to search for "Histoire" (Intro). 
+        // Let's include everything if it matches.
 
-                // Small delay to smooth out UI
-                setTimeout(() => {
-                    loadMoreBeers(container, true, isDiscovery, false);
-                    state.isLoadingMore = false;
-                }, 100);
-            }
-        }, { rootMargin: '400px' }); // Pre-load earlier
-    }
+        // Strict: Don't show Intro in the "Beer Styles" grid by default if no search.
+        if (!term && art.id === 'intro') return false;
 
-    state.observer.observe(sentinel);
-}
+        const matchTitle = art.title.toLowerCase().includes(term);
+        const matchTags = art.tags.some(t => t.toLowerCase().includes(term));
+        const matchSummary = art.summary.toLowerCase().includes(term);
 
-function searchBeers(beers, query) {
-    if (!query) return beers;
-    const lowerQuery = query.toLowerCase();
-    return beers.filter(b =>
-        b.title.toLowerCase().includes(lowerQuery) ||
-        b.brewery.toLowerCase().includes(lowerQuery)
-    );
-}
-
-function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // Prevent default anchor behavior for button-like navs if they were buttons
-            // But we have anchors for Beerpedia now.
-            if (e.currentTarget.tagName === 'A') return;
-
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            state.view = e.currentTarget.dataset.view;
-            renderCurrentView();
-        });
+        return matchTitle || matchTags || matchSummary;
     });
 
-    // Delegated Events for Beer Cards (Click to see details)
-    document.getElementById('main-content').addEventListener('click', (e) => {
-        const card = e.target.closest('.beer-card');
-        if (card) {
-            const beerId = card.dataset.id;
-            const beer = state.beers.find(b => b.id === beerId);
-            if (beer) {
-                UI.renderBeerDetail(beer, (ratingData) => {
-                    Storage.saveBeerRating(beer.id, ratingData);
-                    // Minimal dev version: no visual update needed really, or just toast
-                    if (ratingData) card.classList.add('drunk');
-                    UI.showToast("Note sauvegardée !");
-                });
-            }
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:20px; color:#666;">
+            <p>Aucun résultat pour "${filter}".</p>
+            <p>Essayez "IPA", "Noire", "Légère"...</p>
+        </div>`;
+        return;
+    }
+
+    filtered.forEach(art => {
+        const card = document.createElement('div');
+        card.className = 'type-card fade-in'; // Reuse class + animation
+
+        const tagsHtml = art.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+        card.innerHTML = `
+            <h3>${art.icon} ${art.title}</h3>
+            <div class="tags">${tagsHtml}</div>
+            <p>${art.summary}</p>
+            <a href="${art.file}" class="btn-small-outline" style="text-decoration:none; display:inline-block; text-align:center; margin-top:10px;">En savoir plus</a>
+            ${art.pairing ? `<p class="food-pairing">🍽️ Idéal avec : ${art.pairing}</p>` : ''}
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+// --- Interactions ---
+
+function setupSearch() {
+    const input = document.getElementById('beer-search');
+    if (!input) return;
+
+    input.addEventListener('input', (e) => {
+        renderArticles(e.target.value);
+    });
+}
+
+function setupRandom() {
+    const btn = document.getElementById('btn-random-article');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+        // Pick random article (exclude Intro maybe?)
+        // Let's allow Intro too, why not.
+        const rand = ARTICLES[Math.floor(Math.random() * ARTICLES.length)];
+        window.location.href = rand.file;
+    });
+}
+
+// --- Legacy Interactions (Quiz, Map) ---
+
+function setupQuiz() {
+    const container = document.getElementById('quiz-container');
+    if (!container) return;
+
+    const startDiv = document.getElementById('quiz-start');
+    const qDiv = document.getElementById('quiz-question');
+    const resDiv = document.getElementById('quiz-result');
+    const qText = document.getElementById('q-text');
+    const qOpts = document.getElementById('q-options');
+
+    const questions = [
+        {
+            id: 1,
+            text: "C'est votre première fois ?",
+            opts: [
+                { text: "Oui, je débute", next: 2 },
+                { text: "Non, je connais un peu", next: 3 }
+            ]
+        },
+        {
+            id: 2, // Beginner path
+            text: "Vous préférez quoi comme goût ?",
+            opts: [
+                { text: "Léger et rafraîchissant", res: { title: "Lager / Pils", desc: "La valeur sûre. Fraîche, pétillante, sans prise de tête." } },
+                { text: "Sucré et fruité", res: { title: "Blanche / Fruitée", desc: "Des notes d'agrumes ou de fruits rouges, peu d'amertume." } }
+            ]
+        },
+        {
+            id: 3, // Expert path
+            text: "Votre position sur l'amertume ?",
+            opts: [
+                { text: "J'adore ça !", next: 4 },
+                { text: "Pas trop mon truc", next: 5 }
+            ]
+        },
+        {
+            id: 4, // Bitter lover
+            text: "Et la puissance ?",
+            opts: [
+                { text: "Plutôt léger (Session)", res: { title: "Session IPA", desc: "Tout le goût du houblon, mais léger en alcool." } },
+                { text: "Fort et intense", res: { title: "Imperial IPA", desc: "Une explosion de saveurs et une bonne dose d'alcool." } }
+            ]
+        },
+        {
+            id: 5, // Malt lover
+            text: "Café/Chocolat ou Caramel/Epices ?",
+            opts: [
+                { text: "Café / Noir", res: { title: "Stout / Porter", desc: "Des bières sombres, torréfiées, parfaites pour déguster." } },
+                { text: "Caramel / Rondeur", res: { title: "Triple Belge", desc: "Ronde, chaleureuse, avec des notes de fruits mûrs." } }
+            ]
         }
-    });
-}
+    ];
 
-// Logic fix for Filtering:
-// We need headers 'UI' to expose filtering logic or move it here. 
-// Currently UI.renderBeerList handles filters, but that breaks pagination 
-// because we pass a small batch to it. 
-// I must move the filtering logic OUT of UI.renderBeerList into a helper function here.
-// But I cannot see UI.js fully here to copy it.
-// I will rely on the fact that I can edit UI.js later or now.
-// Actually, I should update UI.js to exporting `filterBeers(beers, filters)` and use it here.
-// For now, I will modify `renderBeerList` call in `loadMoreBeers` to NOT pass filters,
-// and instead apply filters to `state.filteredBeers` inside `renderCurrentView`.
+    const showQuestion = (id) => {
+        const q = questions.find(x => x.id === id);
+        if (!q) return;
 
-// Wait, I need to fix `renderCurrentView` to apply filters logic *before* slicing.
-// I'll add `applyFilters` function here that mimics UI.renderBeerList logic.
+        qText.innerText = q.text;
+        qOpts.innerHTML = '';
 
-function applyFilters(beers, filters) {
-    if (!filters || Object.keys(filters).length === 0) return beers;
+        q.opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.style.margin = '5px';
+            btn.innerText = opt.text;
+            btn.onclick = () => {
+                if (opt.next) {
+                    showQuestion(opt.next);
+                } else if (opt.res) {
+                    showResult(opt.res);
+                }
+            };
+            qOpts.appendChild(btn);
+        });
 
-    let result = [...beers];
-
-    // Exact copy of UI.js filtering logic would be best.
-    // For brevity and correctness, I should probably ask UI.js to do it aka refactor UI.js.
-    // But for this turn, I will implement a robust filter function here.
-
-    // --- Helper ---
-    const getAlc = (b) => parseFloat((b.alcohol || '0').replace('%', '').replace('°', '')) || 0;
-    const getVol = (b) => {
-        const str = (b.volume || '').toLowerCase();
-        if (str.includes('l') && !str.includes('ml') && !str.includes('cl')) return parseFloat(str) * 1000;
-        if (str.includes('cl')) return parseFloat(str) * 10;
-        return parseFloat(str) || 330;
+        startDiv.classList.add('hidden');
+        qDiv.classList.remove('hidden');
     };
 
-    // Type & Brewery
-    if (filters.type && filters.type !== 'All') result = result.filter(b => b.type === filters.type);
-    if (filters.brewery && filters.brewery !== 'All') result = result.filter(b => b.brewery === filters.brewery);
+    const showResult = (res) => {
+        qDiv.classList.add('hidden');
+        resDiv.classList.remove('hidden');
+        document.getElementById('res-title').innerText = res.title;
+        document.getElementById('res-desc').innerText = res.desc;
+    };
 
-    // Alcohol
-    if (filters.alcMode) {
-        const max = parseFloat(filters.alcMax);
-        const min = parseFloat(filters.alcMin);
-        const exact = parseFloat(filters.alcExact);
-        if (filters.alcMode === 'max' && !isNaN(max)) result = result.filter(b => getAlc(b) <= max);
-        else if (filters.alcMode === 'range') {
-            if (!isNaN(min)) result = result.filter(b => getAlc(b) >= min);
-            if (!isNaN(max)) result = result.filter(b => getAlc(b) <= max);
-        } else if (filters.alcMode === 'exact' && !isNaN(exact)) result = result.filter(b => Math.abs(getAlc(b) - exact) < 0.1);
-    }
+    const btnStart = document.getElementById('btn-quiz-start');
+    const btnReset = document.getElementById('btn-quiz-reset');
 
-    // Volume
-    if (filters.volMode && filters.volMode !== 'any') {
-        const min = parseFloat(filters.volMin);
-        const max = parseFloat(filters.volMax);
-        const exact = parseFloat(filters.volExact);
-        if (filters.volMode === 'range') {
-            if (!isNaN(min)) result = result.filter(b => getVol(b) >= min);
-            if (!isNaN(max)) result = result.filter(b => getVol(b) <= max);
-        } else if (filters.volMode === 'exact' && !isNaN(exact)) result = result.filter(b => Math.abs(getVol(b) - exact) < 5);
-    }
-
-    // Min Rating
-    if (filters.minRating && parseInt(filters.minRating) > 0) {
-        const minR = parseInt(filters.minRating);
-        result = result.filter(b => {
-            const r = Storage.getBeerRating(b.id);
-            return r && r.score >= minR;
-        });
-    }
-
-    // Custom
-    if (filters.onlyCustom) result = result.filter(b => String(b.id).startsWith('CUSTOM_'));
-    if (filters.onlyFavorites) result = result.filter(b => Storage.isFavorite(b.id));
-
-    // Sorting
-    result.sort((a, b) => {
-        // ALWAYS Pin Favorites to Top (unless ignored)
-        if (!filters.ignoreFavorites) {
-            const favA = Storage.isFavorite(a.id) ? 1 : 0;
-            const favB = Storage.isFavorite(b.id) ? 1 : 0;
-            if (favA !== favB) return favB - favA;
-        }
-
-        // Secondary Sort
-        let valA, valB;
-        if (filters.sortBy === 'brewery') { valA = a.brewery.toLowerCase(); valB = b.brewery.toLowerCase(); }
-        else if (filters.sortBy === 'alcohol') { valA = getAlc(a); valB = getAlc(b); }
-        else if (filters.sortBy === 'volume') { valA = getVol(a); valB = getVol(b); }
-        else { valA = a.title.toLowerCase(); valB = b.title.toLowerCase(); } // Default to Title
-
-        if (valA < valB) return filters.sortOrder === 'desc' ? 1 : -1;
-        if (valA > valB) return filters.sortOrder === 'desc' ? -1 : 1;
-        return 0;
-    });
-
-    return result;
+    if (btnStart) btnStart.onclick = () => showQuestion(1);
+    if (btnReset) btnReset.onclick = () => {
+        resDiv.classList.add('hidden');
+        startDiv.classList.remove('hidden');
+    };
 }
 
-// NOTE: I need to update renderCurrentView to USE applyFilters
-// I will rewrite renderCurrentView below to include it.
-
-// Re-declaring renderCurrentView with filter logic included
-/* 
-    ... (the function defined above needs this logic injected before caching filteredBeers) 
-    I will merge them in the final output.
-*/
-
-// Initialize
-window.addEventListener('DOMContentLoaded', init);
-
-// Register Service Worker for PWA
-
-
-function notifyUpdate(worker) {
-    const toast = document.createElement('div');
-    toast.className = 'update-toast';
-    toast.innerHTML = `
-        <span>Nouvelle version disponible !</span>
-        <button id="reload-btn">Mettre à jour</button>
-    `;
-    document.body.appendChild(toast);
-
-    document.getElementById('reload-btn').addEventListener('click', () => {
-        worker.postMessage({ type: 'SKIP_WAITING' });
+function setupStyleMap() {
+    document.querySelectorAll('.beer-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            document.querySelectorAll('.beer-dot').forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+            const label = dot.dataset.label;
+            // Maybe filter the grid with this style?
+            // renderArticles(label); 
+            // ^ That would be cool UI interactivity!
+            // Let's try it:
+            const searchInput = document.getElementById('beer-search');
+            if (searchInput) {
+                searchInput.value = label;
+                renderArticles(label);
+                // Scroll to grid
+                document.getElementById('beer-type-grid').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert(`Style : ${label}`);
+            }
+        });
     });
 }
 
-// Redefine renderCurrentView correctly to include applyFilters
-// This overwrites the previous definition in this file content block
-function renderCurrentView() {
-    const mainContent = document.getElementById('main-content');
-
-    if (state.observer) {
-        state.observer.disconnect();
-        state.observer = null;
-    }
-
-    if (state.view === 'home') {
-        const isDiscovery = Storage.getPreference('discoveryMode', false);
-
-        // 1. Search
-        let filtered = searchBeers(state.beers, state.filter);
-
-        // 2. Discovery Logic
-        if (isDiscovery && !state.filter) {
-            const consumedIds = Storage.getAllConsumedBeerIds();
-            filtered = state.beers.filter(b => consumedIds.includes(b.id));
-        }
-
-        // 3. Apply Filters (Moved from UI to logic)
-        filtered = applyFilters(filtered, state.activeFilters);
-
-        state.filteredBeers = filtered;
-        state.pagination.page = 1;
-        state.pagination.hasMore = true;
-
-        const busTab = document.querySelector('.nav-item[data-view="drunk"]');
-        if (busTab) busTab.style.display = isDiscovery ? 'none' : 'flex';
-
-        // Render first batch - PASS NULL for filters to UI because we already filtered!
-        loadMoreBeers(mainContent, false, isDiscovery, isDiscovery && state.filter);
-
-    } else if (state.view === 'drunk') {
-        const consumedIds = Storage.getAllConsumedBeerIds();
-        let drunkBeers = state.beers.filter(b => consumedIds.includes(b.id));
-
-        // Apply filters to drunk view too? Why not.
-        drunkBeers = applyFilters(drunkBeers, state.activeFilters);
-
-        state.filteredBeers = drunkBeers;
-        state.pagination.page = 1;
-        state.pagination.hasMore = true;
-
-        loadMoreBeers(mainContent, false, false, false);
-
-    } else if (state.view === 'stats') {
-        const isDiscovery = Storage.getPreference('discoveryMode', false);
-        UI.renderStats(state.beers, Storage.getAllUserData(), mainContent, isDiscovery, (newVal) => {
-            Storage.savePreference('discoveryMode', newVal);
-            renderCurrentView();
-        });
-
-    }
-    // Guide & Article views moved to beerpedia.html
-
-
-    // Ensure loader is hidden if it was there? (Inner HTML clear handles it)
+// Start
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }
-
-// Global Nav Request Handler (from UI back buttons)
-
-
-// Expose navigation for inline HTML (Guide buttons)
-
-

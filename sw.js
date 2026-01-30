@@ -1,25 +1,24 @@
-const CACHE_NAME = 'Beerdex-v1'; // Increment to trigger update
+const CACHE_NAME = 'Beerpedia-v1';
 const ASSETS = [
+    './',
     './index.html',
     './style.css',
     './js/app.js',
-    './js/ui.js',
-    './js/storage.js',
-    './js/achievements.js',
     './js/data.js',
-    './data/deutchbeer.json',
-    './data/belgiumbeer.json',
-    './data/frenchbeer.json',
-    './data/nlbeer.json',
-    './data/usbeer.json',
+    './js/guide_content.js',
+    './js/runtime.js',
     './manifest.webmanifest',
-    './images/beer/FUT.jpg',
-    './images/beer/default.png',
     './icons/logo-bnr.png',
     './icons/192x192.png',
     './icons/512x512.png',
-    './offline.html',
-    './images/foam.png'
+    // Articles
+    './articles/intro.html',
+    './articles/lager.html',
+    './articles/ipa.html',
+    './articles/stout.html',
+    './articles/trappist.html',
+    './articles/saison.html',
+    './articles/sour.html'
 ];
 
 // Install Event
@@ -27,10 +26,11 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('[SW] Caching App Shell');
+                console.log('[SW] Caching Beerpedia Shell');
                 return cache.addAll(ASSETS);
             })
     );
+    self.skipWaiting(); // Force activation
 });
 
 // Activate Event
@@ -39,43 +39,47 @@ self.addEventListener('activate', event => {
         caches.keys().then(keys => {
             return Promise.all(keys.map(key => {
                 if (key !== CACHE_NAME) {
-                    console.log('[SW] Clearing Old Cache');
+                    console.log('[SW] Clearing Old Cache:', key);
                     return caches.delete(key);
                 }
             }));
         })
     );
+    self.clients.claim(); // Take control immediately
 });
 
-// Fetch Event
+// Fetch Event - Network First for HTML, Cache First for assets
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // HTML pages: Network first
+    if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Clone and cache the fresh response
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    return response;
+                })
+                .catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // Other assets: Cache first
     event.respondWith(
-        caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
-            // Cache Hit - Return response
+        caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) {
                 return cachedResponse;
             }
-
-            // Network Request
             return fetch(event.request).then(networkResponse => {
-                // Check if valid reference
-                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                    return networkResponse;
+                if (networkResponse && networkResponse.status === 200) {
+                    const clone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                 }
-
-                // Clone response for cache
-                const responseToCache = networkResponse.clone();
-
-                caches.open(CACHE_NAME)
-                    .then(cache => {
-                        // Only cache images and data files dynamically
-                        if (event.request.url.includes('/images/') || event.request.url.endsWith('.json')) {
-                            cache.put(event.request, responseToCache);
-                        }
-                    });
-
                 return networkResponse;
-            })
+            });
         })
     );
 });
