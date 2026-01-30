@@ -768,6 +768,132 @@ window.downloadHTML = () => {
     URL.revokeObjectURL(url);
 };
 
+function getInnerHTML() {
+    const icon = document.getElementById('meta-icon').value || '🍺';
+    const title = document.getElementById('meta-title').value || 'Article';
+    const subtitle = document.getElementById('meta-subtitle').value || '';
+    const author = document.getElementById('meta-author').value || 'Beerpedia';
+    const role = document.getElementById('meta-role').value || 'Éditeur';
+
+    let contentHtml = `
+            <div class="article-container fade-in">
+                <header class="article-header">
+                    <div class="article-icon">${icon}</div>
+                    <h1>${title}</h1>
+                    <p class="subtitle">${subtitle}</p>
+                    <p class="article-author">
+                        <span style="color:#eee;">${author}</span> // <span style="font-style:italic;">${role}</span>
+                    </p>
+                </header>
+
+                <div class="article-content">
+    `;
+
+    blocks.forEach(block => {
+        // Reuse logic or duplicate rendering logic? Duplicate for now to ensure styles match renderPreview
+        // Ideally we should refactor to a renderBlockHTML(block) function used by all 3 (workspace, preview, export)
+        // For now, let's copy the PREVIEW logic since that's what we want to see
+
+        if (block.type === 'header') {
+            contentHtml += `<h3 style="color:#fff; border-left:3px solid var(--accent-gold); padding-left:10px; margin-top:20px;">${block.content || '...'}</h3>`;
+        } else if (block.type === 'text') {
+            contentHtml += `<p style="color:#ccc; line-height:1.6; margin-bottom:10px;">${(block.content || '').replace(/\n/g, '<br>')}</p>`;
+        } else if (block.type === 'list') {
+            const items = (block.content || '').split('\n').filter(x => x.trim());
+            contentHtml += `<ul style="color:#ddd; padding-left:20px; margin-bottom:15px;">
+                ${items.map(i => `<li>${i}</li>`).join('')}
+            </ul>`;
+        } else if (block.type === 'image') {
+            const src = block.content || 'https://placehold.co/600x400';
+            contentHtml += `<div style="margin:20px 0; text-align:center;">
+                <img src="${src}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.3);">
+            </div>`;
+        } else if (block.type === 'meta') {
+            const v = block.content || {};
+            contentHtml += `
+                <div style="display:flex; gap:10px; margin:20px 0; justify-content:center;">
+                    <span style="background:rgba(255,192,0,0.1); color:var(--accent-gold); padding:5px 12px; border-radius:20px; border:1px solid rgba(255,192,0,0.3);">
+                        🌡️ ${v.temp || '?'}
+                    </span>
+                    <span style="background:rgba(255,192,0,0.1); color:var(--accent-gold); padding:5px 12px; border-radius:20px; border:1px solid rgba(255,192,0,0.3);">
+                        🍺 ${v.glass || '?'}
+                    </span>
+                </div>
+            `;
+        } else if (block.type === 'signature') {
+            const v = block.content || {};
+            contentHtml += `
+                <div style="background:#1a1a1a; border:1px solid #333; border-radius:12px; padding:15px; margin:20px 0; display:flex; justify-content:space-around; align-items:center;">
+                    <div style="text-align:center;">
+                        <div style="color:#888; font-size:0.7rem; text-transform:uppercase;">Volume</div>
+                        <div style="color:#fff; font-weight:bold;">${v.volume || '-'}</div>
+                    </div>
+                    <div style="width:1px; height:30px; background:#333;"></div>
+                    <div style="text-align:center;">
+                        <div style="color:#888; font-size:0.7rem; text-transform:uppercase;">Alcool</div>
+                        <div style="color:var(--accent-gold); font-weight:bold;">${v.abv || '-'}</div>
+                    </div>
+                    <div style="width:1px; height:30px; background:#333;"></div>
+                    <div style="text-align:center;">
+                        <div style="color:#888; font-size:0.7rem; text-transform:uppercase;">Style</div>
+                        <div style="color:#fff; font-weight:bold;">${v.type || '-'}</div>
+                    </div>
+                </div>
+             `;
+        } else if (block.type === 'callout') {
+            contentHtml += `
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; border-left:4px solid var(--accent-gold); margin:15px 0;">
+                    <p style="margin:0; color:#eee; font-style:italic;">"${block.content || '...'}"</p>
+                </div>
+            `;
+        } else if (block.type === 'quote') {
+            const v = block.content || {};
+            contentHtml += `
+                <blockquote style="margin:20px 0; padding:15px 20px; border-left:4px solid #555; background:rgba(255,255,255,0.03); font-style:italic; color:#ddd;">
+                    "${v.text || '...'}"
+                    ${v.author ? `<footer style="margin-top:10px; font-size:0.9rem; color:#888;">— ${v.author}</footer>` : ''}
+                </blockquote>
+            `;
+        } else if (block.type === 'faq') {
+            const v = block.content || {};
+            contentHtml += `
+                <div style="margin:15px 0; background:#1a1a1a; border-radius:8px; overflow:hidden;">
+                    <div style="padding:12px 15px; background:#252525; font-weight:bold; color:#fff;">
+                        ❓ ${v.question || 'Question ?'}
+                    </div>
+                    <div style="padding:12px 15px; color:#ccc; line-height:1.5;">
+                        ${v.answer || 'Réponse...'}
+                    </div>
+                </div>
+            `;
+        } else if (block.type === 'table') {
+            const rows = (block.content || '').split('\n').filter(x => x.trim());
+            if (rows.length > 0) {
+                contentHtml += `<div style="overflow-x:auto; margin:15px 0;"><table style="width:100%; border-collapse:collapse; background:#1a1a1a; border-radius:8px; overflow:hidden;">`;
+                rows.forEach((row, i) => {
+                    const cells = row.split(',');
+                    const tag = i === 0 ? 'th' : 'td';
+                    const style = i === 0
+                        ? 'background:#252525; color:var(--accent-gold); padding:10px; text-align:left;'
+                        : 'padding:10px; border-top:1px solid #333; color:#ccc;';
+                    contentHtml += `<tr>${cells.map(c => `<${tag} style="${style}">${c.trim()}</${tag}>`).join('')}</tr>`;
+                });
+                contentHtml += `</table></div>`;
+            }
+        } else if (block.type === 'divider') {
+            contentHtml += `<hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:30px 0;">`;
+        }
+    });
+
+    contentHtml += `
+                </div>
+                <div style="height: 100px;"></div>
+            </div>
+    `;
+
+    return contentHtml;
+}
+
 // --- Import ---
 window.processImport = () => {
     const code = document.getElementById('import-code').value;

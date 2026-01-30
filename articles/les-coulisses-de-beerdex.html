@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les coulisses de Beerdex - Beerpedia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="logo">
+                <a href="../index.html" style="text-decoration:none; display:flex; align-items:center; gap:10px; color:inherit;">
+                    <img src="../icons/logo-bnr.png" width="32" height="32" alt="Beerpedia Logo">
+                    <h1>Beerpedia</h1>
+                </a>
+            </div>
+            <a href="../index.html" class="icon-btn" aria-label="Retour">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+        </header>
+
+        <main id="main-content" class="scroll-container">
+            <div class="article-container fade-in">
+                <header class="article-header">
+                    <div class="article-icon">🍺</div>
+                    <h1>Les coulisses de Beerdex</h1>
+                    <p class="subtitle">Pour les nerds</p>
+                    <p class="article-author">
+                        <span style="color:#eee;">Noah Bruijninckx</span> // <span style="font-style:italic;">Développeur</span>
+                    </p>
+                </header>
+
+                <div class="article-content">
+                    <h3>Comment est construit Beerdex ?</h3>
+                    <p>Beerdex est conçu entièrement en HTML, CSS et JavaScript ce qui permet de rendre l'app disponible sur n'importe quel appareil.</p>
+                    <details class="faq-item">
+                        <summary>D'où viennent la liste des bières ?</summary>
+                        <p>J'ai scrappe différents site web de vente de bières afin de constituer une base de données de 1220 bières et la liste continue à se rallonger au fur et a mesure. En complément, une api permet de fournir les code barre et les bières qui ne sont pas dans ma base de données.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Combien ça coûte de faire tourner Beerdex ?</summary>
+                        <p>La publication sur le play store coûte 25€ et le nom de domaine coute 10€. L'app est hébergée sur GitHub et le backend utilise firebase.</p>
+                    </details>
+                    <blockquote>
+                        "Une bière brassée avec savoir se déguste avec sagesse."
+                        <footer>— Arnoldus</footer>
+                    </blockquote>
+                    <h3>Fun facts</h3>
+                    <p>La première version de Beerdex était disponible en ligne en moins de 12h !</p>
+
+                </div>
+                
+                <div style="height: 100px;"></div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/runtime.js"></script>
+</body>
+</html>
