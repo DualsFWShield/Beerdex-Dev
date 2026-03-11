@@ -1,9 +1,8 @@
 import { GUIDE_HTML } from './guide_content.js';
 import { ARTICLES as LOCAL_ARTICLES } from './data.js';
-import { db, collection, getDocs, auth, signInAnonymously, onAuthStateChanged } from './firebase-config.js';
 
 const mainContent = document.getElementById('main-content');
-let ALL_ARTICLES = [...LOCAL_ARTICLES]; // Start with local
+let ALL_ARTICLES = [...LOCAL_ARTICLES]; // Only use local
 
 // Init
 function init() {
@@ -24,43 +23,7 @@ function renderGuide(container) {
     window.scrollTo(0, 0);
 
     // Wait for DOM to be ready before rendering articles
-    requestAnimationFrame(async () => {
-        // Ensure Anonymous Auth for Reading
-        try {
-            await new Promise((resolve) => {
-                if (auth.currentUser) resolve();
-                else {
-                    signInAnonymously(auth).then(resolve).catch(e => {
-                        console.warn("Auth Anonyme échouée", e);
-                        resolve(); // Continue anyway, maybe rules are public
-                    });
-                }
-            });
-        } catch (e) { console.log("Auth setup check failed", e); }
-
-        // Fetch Online Articles
-        try {
-            const querySnapshot = await getDocs(collection(db, "articles"));
-            const onlineArticles = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                onlineArticles.push({
-                    id: doc.id,
-                    title: data.title,
-                    file: `article.html?id=${doc.id}`, // Dynamic Link
-                    icon: data.icon,
-                    tags: data.tags || [],
-                    summary: data.subtitle || 'Article publié par la communauté.',
-                    pairing: '' // Optional
-                });
-            });
-
-            // Merge: Online first or last? Let's put them first.
-            ALL_ARTICLES = [...onlineArticles, ...LOCAL_ARTICLES];
-        } catch (e) {
-            console.log("Could not fetch online articles (offline or config missing):", e);
-        }
-
+    requestAnimationFrame(() => {
         // Render Articles (Initial Load - All)
         renderArticles();
 
@@ -72,6 +35,22 @@ function renderGuide(container) {
     });
 }
 
+function getFavorites() {
+    const favs = localStorage.getItem('beerpedia_favorites');
+    return favs ? JSON.parse(favs) : [];
+}
+
+function toggleFavorite(id) {
+    let favs = getFavorites();
+    if (favs.includes(id)) {
+        favs = favs.filter(f => f !== id);
+    } else {
+        favs.push(id);
+    }
+    localStorage.setItem('beerpedia_favorites', JSON.stringify(favs));
+    renderArticles(document.getElementById('beer-search')?.value || '');
+}
+
 function renderArticles(filter = '') {
     const grid = document.getElementById('beer-type-grid');
     if (!grid) return;
@@ -79,6 +58,7 @@ function renderArticles(filter = '') {
     grid.innerHTML = '';
 
     const term = filter.toLowerCase().trim();
+    const favorites = getFavorites();
 
     const filtered = ALL_ARTICLES.filter(art => {
         // Don't show Intro in the grid by default
@@ -87,35 +67,47 @@ function renderArticles(filter = '') {
         const matchTitle = art.title ? art.title.toLowerCase().includes(term) : false;
         const matchTags = art.tags ? art.tags.some(t => t.toLowerCase().includes(term)) : false;
         const matchSummary = art.summary ? art.summary.toLowerCase().includes(term) : false;
+        const matchFavorite = term === 'favoris' || term === 'favorites' ? favorites.includes(art.id) : false;
 
-        return matchTitle || matchTags || matchSummary;
+        return matchTitle || matchTags || matchSummary || matchFavorite;
     });
 
     if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:20px; color:#666;">
-            <p>Aucun résultat pour "${filter}".</p>
-            <p>Essayez "IPA", "Noire", "Légère"...</p>
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#666; animation: fadeIn 0.5s ease-out;">
+            <p style="font-size: 1.2rem; margin-bottom: 10px;">∅ Aucun résultat pour "${filter}"</p>
+            <p>Essayez "IPA", "Noire", "Légère" ou "Favoris"...</p>
         </div>`;
         return;
     }
 
-    filtered.forEach(art => {
+    filtered.forEach((art, index) => {
         const card = document.createElement('div');
         card.className = 'type-card';
+        card.style.animationDelay = `${index * 0.1}s`;
 
+        const isFav = favorites.includes(art.id);
         const tagsHtml = art.tags.map(t => `<span class="tag">${t}</span>`).join('');
 
         card.innerHTML = `
+            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); window.toggleFavorite('${art.id}')" title="Ajouter aux favoris">
+                ${isFav ? '★' : '☆'}
+            </button>
             <h3>${art.icon} ${art.title}</h3>
             <div class="tags">${tagsHtml}</div>
             <p>${art.summary}</p>
-            <a href="${art.file}" class="btn-small-outline">En savoir plus</a>
-            ${art.pairing ? `<p class="food-pairing">🍽️ Idéal avec : ${art.pairing}</p>` : ''}
+            <div style="margin-bottom: 15px;">
+                ${art.pairing ? `<p class="food-pairing" style="margin-bottom: 5px;">🍽️ <strong>Pairing:</strong> ${art.pairing}</p>` : ''}
+                ${art.glass ? `<p style="font-size: 0.85rem; color: var(--text-secondary);">🍷 <strong>Verre:</strong> ${art.glass}</p>` : ''}
+            </div>
+            <a href="${art.file}" class="btn-small-outline">Déguster l'article</a>
         `;
 
         grid.appendChild(card);
     });
 }
+
+// Expose toggleFavorite to window for onclick
+window.toggleFavorite = toggleFavorite;
 
 // --- Interactions ---
 
@@ -151,60 +143,80 @@ function setupQuiz() {
     const qText = document.getElementById('q-text');
     const qOpts = document.getElementById('q-options');
 
+    // Add progress bar if not exists
+    if (!document.querySelector('.quiz-progress-container')) {
+        const progress = document.createElement('div');
+        progress.className = 'quiz-progress-container hidden';
+        progress.innerHTML = '<div class="quiz-progress-bar" id="quiz-progress"></div>';
+        container.prepend(progress);
+    }
+
+    const progressContainer = document.querySelector('.quiz-progress-container');
+    const progressBar = document.getElementById('quiz-progress');
+
     const questions = [
         {
             id: 1,
             text: "C'est votre première fois ?",
             opts: [
-                { text: "Oui, je débute", next: 2 },
-                { text: "Non, je connais un peu", next: 3 }
+                { text: "🐣 Oui, je débute", next: 2 },
+                { text: "🍺 Non, je connais un peu", next: 3 }
             ]
         },
         {
             id: 2, // Beginner path
             text: "Vous préférez quoi comme goût ?",
             opts: [
-                { text: "Léger et rafraîchissant", res: { title: "Lager / Pils", desc: "La valeur sûre. Fraîche, pétillante, sans prise de tête." } },
-                { text: "Sucré et fruité", res: { title: "Blanche / Fruitée", desc: "Des notes d'agrumes ou de fruits rouges, peu d'amertume." } }
+                { text: "🌊 Léger et rafraîchissant", res: { title: "Lager / Pils", desc: "La valeur sûre. Fraîche, pétillante, sans prise de tête." } },
+                { text: "🍎 Sucré et fruité", res: { title: "Blanche / Fruitée", desc: "Des notes d'agrumes ou de fruits rouges, peu d'amertume." } }
             ]
         },
         {
             id: 3, // Expert path
             text: "Votre position sur l'amertume ?",
             opts: [
-                { text: "J'adore ça !", next: 4 },
-                { text: "Pas trop mon truc", next: 5 }
+                { text: "🔥 J'adore ça !", next: 4 },
+                { text: "🍃 Pas trop mon truc", next: 5 }
             ]
         },
         {
             id: 4, // Bitter lover
             text: "Et la puissance ?",
             opts: [
-                { text: "Plutôt léger (Session)", res: { title: "Session IPA", desc: "Tout le goût du houblon, mais léger en alcool." } },
-                { text: "Fort et intense", res: { title: "Imperial IPA", desc: "Une explosion de saveurs et une bonne dose d'alcool." } }
+                { text: "🏸 Plutôt léger (Session)", res: { title: "Session IPA", desc: "Tout le goût du houblon, mais léger en alcool." } },
+                { text: "🚀 Fort et intense", res: { title: "Imperial IPA", desc: "Une explosion de saveurs et une bonne dose d'alcool." } }
             ]
         },
         {
             id: 5, // Malt lover
             text: "Café/Chocolat ou Caramel/Epices ?",
             opts: [
-                { text: "Café / Noir", res: { title: "Stout / Porter", desc: "Des bières sombres, torréfiées, parfaites pour déguster." } },
-                { text: "Caramel / Rondeur", res: { title: "Triple Belge", desc: "Ronde, chaleureuse, avec des notes de fruits mûrs." } }
+                { text: "☕ Café / Noir", res: { title: "Stout / Porter", desc: "Des bières sombres, torréfiées, parfaites pour déguster." } },
+                { text: "🍯 Caramel / Rondeur", res: { title: "Triple Belge", desc: "Ronde, chaleureuse, avec des notes de fruits mûrs." } }
             ]
         }
     ];
+
+    let currentStep = 0;
+    const totalSteps = 2; // Approximated for progress bar
 
     const showQuestion = (id) => {
         const q = questions.find(x => x.id === id);
         if (!q) return;
 
+        currentStep++;
+        const progress = (currentStep / (totalSteps + 1)) * 100;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+
         qText.innerText = q.text;
         qOpts.innerHTML = '';
+        qDiv.style.animation = 'none';
+        qDiv.offsetHeight; // Reset animation
+        qDiv.style.animation = 'fadeIn 0.5s ease-out';
 
         q.opts.forEach(opt => {
             const btn = document.createElement('button');
-            btn.className = 'btn-primary';
-            btn.style.margin = '5px';
+            btn.className = 'quiz-option-btn';
             btn.innerText = opt.text;
             btn.onclick = () => {
                 if (opt.next) {
@@ -218,11 +230,14 @@ function setupQuiz() {
 
         startDiv.classList.add('hidden');
         qDiv.classList.remove('hidden');
+        progressContainer.classList.remove('hidden');
     };
 
     const showResult = (res) => {
+        if (progressBar) progressBar.style.width = `100%`;
         qDiv.classList.add('hidden');
         resDiv.classList.remove('hidden');
+        resDiv.style.animation = 'fadeIn 0.8s ease-out';
         document.getElementById('res-title').innerText = res.title;
         document.getElementById('res-desc').innerText = res.desc;
     };
@@ -230,9 +245,13 @@ function setupQuiz() {
     const btnStart = document.getElementById('btn-quiz-start');
     const btnReset = document.getElementById('btn-quiz-reset');
 
-    if (btnStart) btnStart.onclick = () => showQuestion(1);
+    if (btnStart) btnStart.onclick = () => {
+        currentStep = 0;
+        showQuestion(1);
+    };
     if (btnReset) btnReset.onclick = () => {
         resDiv.classList.add('hidden');
+        progressContainer.classList.add('hidden');
         startDiv.classList.remove('hidden');
     };
 }

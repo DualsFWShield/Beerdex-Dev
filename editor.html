@@ -5,173 +5,289 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beerpedia - Éditeur d'Articles</title>
-    <!-- Same styles as main app for consistency in preview -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap"
-        rel="stylesheet">
+    <meta name="description" content="Éditeur WYSIWYG avancé pour créer des articles Beerpedia.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style-editor.css">
-    <!-- Firebase SDK is imported in the module script -->
+    <link rel="icon" type="image/png" href="icons/logo-bnr.png">
 </head>
 
 <body class="editor-mode">
 
+    <!-- ═══════════════ TOOLBAR ═══════════════ -->
+    <div class="editor-toolbar">
+        <a href="index.html" class="toolbar-brand">
+            <img src="icons/logo-bnr.png" alt="Logo">
+            <span>Beerpedia</span>
+        </a>
 
+        <!-- Toggle Block Panel -->
+        <button class="toolbar-btn" id="btn-toggle-panel" data-tooltip="Blocs" style="font-size:1rem;">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
 
-    <!-- SIDEBAR -->
-    <aside class="editor-sidebar">
-        <!-- Fixed Header Section -->
-        <div class="sidebar-header">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="color:var(--accent-gold); margin:0;">Super Éditeur</h2>
-                <!-- Draft Manager Button -->
-                <button id="btn-drafts" class="btn-icon" title="Mes Brouillons"
-                    onclick="toggleDraftsPanel()">📂</button>
-            </div>
+        <div class="toolbar-divider"></div>
 
-            <!-- Metadata -->
-            <div class="input-group" style="margin-top:20px;">
-                <label>Titre de l'Article</label>
-                <div style="display:flex; gap:8px;">
-                    <select id="meta-icon" style="width:60px; text-align:center; font-size:1.2rem;">
-                        <option value="🍺">🍺</option>
-                        <option value="🍻">🍻</option>
-                        <option value="🌿">🌿</option>
-                        <option value="☕">☕</option>
-                        <option value="⛪">⛪</option>
-                        <option value="🌾">🌾</option>
-                        <option value="🍋">🍋</option>
-                        <option value="📖">📖</option>
-                        <option value="📜">📜</option>
-                        <option value="🎓">🎓</option>
-                        <option value="💡">💡</option>
-                        <option value="🏆">🏆</option>
-                    </select>
-                    <input type="text" id="meta-title" placeholder="Ex: Lager & Pilsner" style="flex:1;">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>Sous-titre</label>
-                <input type="text" id="meta-subtitle" placeholder="Ex: La fraîcheur...">
-            </div>
-            <div class="input-group" style="display:flex; gap:10px;">
-                <div style="flex:1;">
-                    <label>Auteur</label>
-                    <input type="text" id="meta-author" placeholder="Nom" value="Beerpedia">
-                </div>
-                <div style="flex:1;">
-                    <label>Fonction</label>
-                    <input type="text" id="meta-role" placeholder="Beerologue" value="Éditeur">
-                </div>
-            </div>
+        <!-- Format -->
+        <div class="toolbar-group">
+            <button class="toolbar-btn" data-cmd="bold" data-tooltip="Gras (Ctrl+B)"><b>B</b></button>
+            <button class="toolbar-btn" data-cmd="italic" data-tooltip="Italique (Ctrl+I)"><i>I</i></button>
+            <button class="toolbar-btn" data-cmd="underline" data-tooltip="Souligné (Ctrl+U)"><u>U</u></button>
+            <button class="toolbar-btn" data-cmd="strikeThrough" data-tooltip="Barré"><s>S</s></button>
+        </div>
 
-            <!-- Primary Actions -->
-            <div style="display:flex; gap:8px; margin-top:15px;">
-                <button class="btn-primary" style="background:var(--success); flex:1;" onclick="generateHTML()">✨
-                    Exporter</button>
-                <button class="btn-primary" style="flex:1;" onclick="downloadHTML()">📥 Télécharger</button>
-            </div>
+        <div class="toolbar-divider"></div>
 
-            <!-- Firebase Actions -->
-            <div style="margin-top:15px; border-top:1px solid #333; padding-top:15px;">
-                <div id="auth-section">
-                    <button id="btn-login" class="btn-secondary" style="width:100%;">🔒 Connexion Firebase</button>
-                    <div id="login-form" class="hidden" style="margin-top:10px;">
-                        <input type="email" id="auth-email" placeholder="Email" class="form-input"
-                            style="width:100%; margin-bottom:5px;">
-                        <input type="password" id="auth-password" placeholder="Mot de passe" class="form-input"
-                            style="width:100%; margin-bottom:5px;">
-                        <button id="btn-auth-submit" class="btn-primary" style="width:100%;">Se connecter</button>
+        <!-- Headings -->
+        <div class="toolbar-group">
+            <button class="toolbar-btn" data-block="h2" data-tooltip="Titre H2" style="font-weight:800;font-size:0.88rem;">H2</button>
+            <button class="toolbar-btn" data-block="h3" data-tooltip="Titre H3" style="font-weight:700;">H3</button>
+            <button class="toolbar-btn" data-block="p" data-tooltip="Paragraphe">¶</button>
+            <button class="toolbar-btn" data-block="blockquote" data-tooltip="Citation">❝</button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Lists -->
+        <div class="toolbar-group">
+            <button class="toolbar-btn" data-cmd="insertUnorderedList" data-tooltip="Liste à puces">
+                <svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="toolbar-btn" data-cmd="insertOrderedList" data-tooltip="Liste numérotée">
+                <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="4" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="4" y="14" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="4" y="20" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg>
+            </button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Insert -->
+        <div class="toolbar-group">
+            <button class="toolbar-btn" data-action="insertLink" data-tooltip="Lien">
+                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </button>
+            <button class="toolbar-btn" data-action="insertImage" data-tooltip="Image">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+            <button class="toolbar-btn" data-action="insertDivider" data-tooltip="Séparateur">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+        </div>
+
+        <div class="toolbar-spacer"></div>
+
+        <!-- Right Actions -->
+        <div class="toolbar-actions">
+            <button class="toolbar-btn" id="btn-drafts" data-tooltip="Brouillons" style="font-size:1rem;">📂</button>
+            <button class="toolbar-btn" id="btn-meta-sidebar" data-tooltip="Métadonnées" style="font-size:1rem;">⚙️</button>
+            <button class="toolbar-btn-ghost" id="btn-import"><span>📥 Importer</span></button>
+            <button class="toolbar-btn-ghost" id="btn-export-view"><span>✨ Exporter</span></button>
+            <button class="toolbar-btn-accent" id="btn-download"><span>📥 Télécharger</span></button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ MAIN LAYOUT ═══════════════ -->
+    <div class="editor-main">
+
+        <!-- ── BLOCK PANEL (Left) ── -->
+        <aside class="block-panel" id="block-panel">
+            <div class="block-panel-header">
+                <h3>Blocs</h3>
+                <button class="btn-close" id="btn-close-panel">✕</button>
+            </div>
+            <div class="block-panel-body">
+
+                <!-- Texte -->
+                <div class="block-panel-section">
+                    <div class="block-panel-section-title">Texte</div>
+                    <div class="block-panel-grid">
+                        <div class="block-panel-item" data-insert="h2" draggable="true"><div class="bp-icon">H2</div><div class="bp-label">Titre</div></div>
+                        <div class="block-panel-item" data-insert="h3" draggable="true"><div class="bp-icon">H3</div><div class="bp-label">Sous-titre</div></div>
+                        <div class="block-panel-item" data-insert="text" draggable="true"><div class="bp-icon">¶</div><div class="bp-label">Paragraphe</div></div>
+                        <div class="block-panel-item" data-insert="quote" draggable="true"><div class="bp-icon">❝</div><div class="bp-label">Citation</div></div>
+                        <div class="block-panel-item" data-insert="ul" draggable="true"><div class="bp-icon">•</div><div class="bp-label">Liste</div></div>
+                        <div class="block-panel-item" data-insert="code" draggable="true"><div class="bp-icon">{ }</div><div class="bp-label">Code</div></div>
                     </div>
                 </div>
-                <div id="user-section" class="hidden">
-                    <p style="color:var(--success); font-size:0.8rem; margin-bottom:5px;">Connecté en tant que <span
-                            id="user-email"></span></p>
-                    <button id="btn-publish" class="btn-primary"
-                        style="width:100%; background:var(--accent-gold); color:#000; font-weight:bold;">🚀 Publier en
-                        Ligne</button>
-                    <button id="btn-logout" class="btn-xs" style="margin-top:5px; width:100%;">Déconnexion</button>
+
+                <!-- Média -->
+                <div class="block-panel-section">
+                    <div class="block-panel-section-title">Média</div>
+                    <div class="block-panel-grid">
+                        <div class="block-panel-item" data-insert="image" draggable="true"><div class="bp-icon">🖼️</div><div class="bp-label">Image</div></div>
+                        <div class="block-panel-item" data-insert="gallery" draggable="true"><div class="bp-icon">🖼️</div><div class="bp-label">Galerie</div></div>
+                        <div class="block-panel-item" data-insert="video" draggable="true"><div class="bp-icon">▶️</div><div class="bp-label">Vidéo</div></div>
+                        <div class="block-panel-item" data-insert="carousel" draggable="true"><div class="bp-icon">🎠</div><div class="bp-label">Carousel</div></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="editor-section-title" style="margin-top:20px;">Ajouter un Bloc</div>
-            <div class="input-group">
-                <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                    <button class="btn-xs" onclick="addBlock('header')">H3</button>
-                    <button class="btn-xs" onclick="addBlock('text')">TXT</button>
-                    <button class="btn-xs" onclick="addBlock('list')">List</button>
-                    <button class="btn-xs" onclick="addBlock('image')">IMG</button>
-                    <button class="btn-xs" onclick="addBlock('meta')">Info</button>
-                    <button class="btn-xs" onclick="addBlock('signature')">🏷️ Specs</button>
-                    <button class="btn-xs" style="color:var(--accent-gold); border-color:var(--accent-gold);"
-                        onclick="addBlock('callout')">Note</button>
-                    <button class="btn-xs" onclick="addBlock('quote')">❝ Citation</button>
-                    <button class="btn-xs" onclick="addBlock('faq')">❓ FAQ</button>
-                    <button class="btn-xs" onclick="addBlock('table')">📊 Table</button>
-                    <button class="btn-xs" onclick="addBlock('divider')">Div</button>
+                <!-- Bière -->
+                <div class="block-panel-section">
+                    <div class="block-panel-section-title">Bière</div>
+                    <div class="block-panel-grid">
+                        <div class="block-panel-item" data-insert="signature" draggable="true"><div class="bp-icon">🏷️</div><div class="bp-label">Fiche Tech.</div></div>
+                        <div class="block-panel-item" data-insert="meta" draggable="true"><div class="bp-icon">🌡️</div><div class="bp-label">Infos</div></div>
+                        <div class="block-panel-item" data-insert="stats" draggable="true"><div class="bp-icon">📊</div><div class="bp-label">Stats</div></div>
+                    </div>
                 </div>
-                <button class="btn-secondary btn-sm" style="margin-top:5px;"
-                    onclick="document.getElementById('import-modal').classList.remove('hidden')">📥 Importer
-                    HTML</button>
+
+                <!-- Interactif -->
+                <div class="block-panel-section">
+                    <div class="block-panel-section-title">Interactif</div>
+                    <div class="block-panel-grid">
+                        <div class="block-panel-item" data-insert="quiz" draggable="true"><div class="bp-icon">🎮</div><div class="bp-label">Quiz</div></div>
+                        <div class="block-panel-item" data-insert="accordion" draggable="true"><div class="bp-icon">📂</div><div class="bp-label">Accordéon</div></div>
+                        <div class="block-panel-item" data-insert="faq" draggable="true"><div class="bp-icon">❓</div><div class="bp-label">FAQ</div></div>
+                    </div>
+                </div>
+
+                <!-- Layout -->
+                <div class="block-panel-section">
+                    <div class="block-panel-section-title">Layout</div>
+                    <div class="block-panel-grid">
+                        <div class="block-panel-item" data-insert="divider" draggable="true"><div class="bp-icon">—</div><div class="bp-label">Séparateur</div></div>
+                        <div class="block-panel-item" data-insert="columns" draggable="true"><div class="bp-icon">▐▐</div><div class="bp-label">Colonnes</div></div>
+                        <div class="block-panel-item" data-insert="callout" draggable="true"><div class="bp-icon">💡</div><div class="bp-label">Note</div></div>
+                        <div class="block-panel-item" data-insert="table" draggable="true"><div class="bp-icon">▦</div><div class="bp-label">Tableau</div></div>
+                    </div>
+                </div>
+
             </div>
-            <div class="editor-section-title" style="margin-top:10px;">Espace de Travail</div>
-            <p style="font-size:0.7rem; color:#666; margin-bottom:10px;">💡 Ctrl+S: Sauver | Ctrl+E: Exporter |
-                Ctrl+B/I/U: Formatage</p>
-        </div>
+        </aside>
 
-        <!-- Scrollable Workspace -->
-        <div id="workspace" class="block-list scroll-container">
-            <!-- Dynamic Blocks -->
-        </div>
-    </aside>
+        <!-- ── EDITOR CANVAS (Center) ── -->
+        <div class="editor-canvas" id="editor-canvas">
+            <div class="editor-document">
+                <input type="text" class="editor-title-input" id="meta-title" placeholder="Titre de l'article…">
+                <input type="text" class="editor-subtitle-input" id="meta-subtitle" placeholder="Sous-titre ou accroche…">
 
-    <!-- PREVIEW -->
-    <main class="editor-preview">
-        <div class="preview-phone-frame">
-            <!-- Rendered content -->
-            <div id="preview-content" style="height:100%; overflow-y:auto;"></div>
-        </div>
-    </main>
+                <div class="editor-meta-line">
+                    <select id="meta-icon" class="meta-icon-picker">
+                        <option value="🍺">🍺</option><option value="🍻">🍻</option><option value="🌿">🌿</option>
+                        <option value="☕">☕</option><option value="⛪">⛪</option><option value="🌾">🌾</option>
+                        <option value="🍋">🍋</option><option value="📖">📖</option><option value="📜">📜</option>
+                        <option value="🎓">🎓</option><option value="💡">💡</option><option value="🏆">🏆</option>
+                    </select>
+                    <span>par</span>
+                    <input type="text" id="meta-author" placeholder="Auteur" value="Beerpedia">
+                    <span>//</span>
+                    <input type="text" id="meta-role" placeholder="Rôle" value="Éditeur">
+                </div>
 
-    <!-- Import Modal -->
+                <!-- WYSIWYG Content -->
+                <div class="editor-content" id="editor-content" contenteditable="true"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ STATUS BAR ═══════════════ -->
+    <div class="editor-statusbar">
+        <div class="statusbar-left">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Prêt</span>
+            </div>
+        </div>
+        <div class="statusbar-right">
+            <span id="word-count">0 mots</span>
+            <span>Ctrl+S Sauver</span>
+            <span>/ Insérer</span>
+        </div>
+    </div>
+
+    <!-- ═══════════════ METADATA SIDEBAR ═══════════════ -->
+    <div class="meta-sidebar-overlay" id="meta-overlay"></div>
+    <div class="meta-sidebar" id="meta-sidebar">
+        <div class="meta-sidebar-header">
+            <h3>⚙️ Métadonnées</h3>
+            <button class="btn-close" id="btn-close-meta">✕</button>
+        </div>
+        <div class="meta-sidebar-body">
+            <div class="meta-field">
+                <label>Icône</label>
+                <select id="meta-icon-sidebar" style="font-size:1.3rem; text-align:center;">
+                    <option value="🍺">🍺 Bière</option><option value="🍻">🍻 Santé</option>
+                    <option value="🌿">🌿 Houblon</option><option value="☕">☕ Torréfié</option>
+                    <option value="⛪">⛪ Abbaye</option><option value="🌾">🌾 Saison</option>
+                    <option value="🍋">🍋 Acide</option><option value="📖">📖 Histoire</option>
+                    <option value="📜">📜 Classique</option><option value="🎓">🎓 Expert</option>
+                    <option value="💡">💡 Guide</option><option value="🏆">🏆 Palmarès</option>
+                </select>
+            </div>
+            <div class="meta-field"><label>Auteur</label><input type="text" id="meta-author-sidebar" placeholder="Auteur" value="Beerpedia"></div>
+            <div class="meta-field"><label>Fonction</label><input type="text" id="meta-role-sidebar" placeholder="Rôle" value="Éditeur"></div>
+            <div class="meta-field"><label>Notes internes</label><textarea id="meta-notes" rows="4" placeholder="TODOs, idées…"></textarea></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ DRAFTS PANEL ═══════════════ -->
+    <div id="drafts-panel" class="drafts-panel hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>📂 Brouillons</h3>
+            <button class="btn-close" id="btn-close-drafts">✕</button>
+        </div>
+        <button class="btn-primary-editor" id="btn-new-draft">+ Nouveau</button>
+        <div id="drafts-list" class="drafts-list"></div>
+    </div>
+
+    <!-- ═══════════════ INSERT BLOCK MODAL ═══════════════ -->
+    <div id="insert-modal" class="editor-modal-overlay hidden">
+        <div class="editor-modal-content block-edit-modal" style="max-height:85vh;">
+            <h3 id="insert-modal-title">📦 Insérer un bloc</h3>
+            <div id="insert-modal-fields" style="overflow-y:auto;max-height:60vh;padding-right:4px;"></div>
+            <div class="modal-actions">
+                <button class="toolbar-btn-ghost" id="btn-cancel-insert">Annuler</button>
+                <button class="toolbar-btn-accent" id="btn-do-insert">Insérer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ IMPORT MODAL ═══════════════ -->
     <div id="import-modal" class="editor-modal-overlay hidden">
         <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Importer du Code HTML</h3>
-            <p style="color:#ccc; font-size:0.9rem;">Collez le code source d'un article existant ici :</p>
+            <h3>📥 Importer du HTML</h3>
+            <p>Collez le code source d'un article :</p>
             <textarea id="import-code" class="code-editor-area"></textarea>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('import-modal').classList.add('hidden')"
-                    class="btn-secondary">Annuler</button>
-                <button onclick="processImport()" class="btn-primary" style="width:auto;">Importer</button>
+            <div class="modal-actions">
+                <button class="toolbar-btn-ghost" id="btn-cancel-import">Annuler</button>
+                <button class="toolbar-btn-accent" id="btn-do-import">Importer</button>
             </div>
         </div>
     </div>
 
-    <!-- Drafts Panel -->
-    <div id="drafts-panel" class="drafts-panel hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:1rem; color:var(--accent-gold);">Mes Brouillons</h3>
-            <button class="btn-icon" onclick="toggleDraftsPanel()">✖</button>
-        </div>
-        <button class="btn-primary" onclick="createNewDraft()">+ Nouveau Brouillon</button>
-        <div id="drafts-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-            <!-- Draft items -->
-        </div>
-    </div>
-
-    <!-- Export Modal -->
+    <!-- ═══════════════ EXPORT MODAL ═══════════════ -->
     <div id="export-modal" class="editor-modal-overlay hidden">
         <div class="editor-modal-content" style="height:80vh;">
-            <h3 style="color:var(--accent-gold); margin:0;">Code HTML Généré</h3>
-            <p style="color:#ccc; font-size:0.9rem;">Copiez ce code dans un fichier <code>.html</code> :</p>
-            <textarea id="export-code" class="code-editor-area" style="flex:1; height:auto;"></textarea>
-            <div style="display:flex; justify-content:flex-end;">
-                <button class="btn-primary" style="width:auto;"
-                    onclick="document.getElementById('export-modal').classList.add('hidden')">Fermer</button>
+            <h3>✨ Code HTML Généré</h3>
+            <p>Copiez ce code dans un fichier <code>.html</code> :</p>
+            <textarea id="export-code" class="code-editor-area" style="flex:1;height:auto;"></textarea>
+            <div class="modal-actions">
+                <button class="toolbar-btn-accent" id="btn-close-export">Fermer</button>
             </div>
         </div>
     </div>
 
-    <script type="module" src="js/firebase-config.js"></script>
+    <!-- ═══════════════ BLOCK EDIT MODAL ═══════════════ -->
+    <div id="block-edit-modal" class="editor-modal-overlay hidden">
+        <div class="editor-modal-content block-edit-modal">
+            <h3 id="block-edit-title">Modifier le bloc</h3>
+            <div id="block-edit-fields"></div>
+            <div class="modal-actions">
+                <button class="toolbar-btn-ghost" id="btn-cancel-edit">Annuler</button>
+                <button class="toolbar-btn-accent" id="btn-save-edit">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ FLOATING FORMAT BAR ═══════════════ -->
+    <div class="floating-format-bar hidden" id="floating-format-bar">
+        <button class="ff-btn" data-cmd="bold" title="Gras"><b>B</b></button>
+        <button class="ff-btn" data-cmd="italic" title="Italique"><i>I</i></button>
+        <button class="ff-btn" data-cmd="underline" title="Souligné"><u>U</u></button>
+        <div class="ff-separator"></div>
+        <button class="ff-btn" data-cmd="strikeThrough" title="Barré"><s>S</s></button>
+        <button class="ff-btn" data-action="insertLink" title="Lien">🔗</button>
+    </div>
+
     <script type="module" src="js/editor.js"></script>
 </body>
 
