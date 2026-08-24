@@ -8,221 +8,169 @@
     <!-- Same styles as main app for consistency in preview -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap"
         rel="stylesheet">
-    <!-- Quill.js Theme -->
-    <link href="css/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style-editor.css">
+    <!-- Firebase SDK is imported in the module script -->
 </head>
 
 <body class="editor-mode">
 
 
 
-    <!-- TOP TOOLBAR -->
-    <header class="editor-toolbar">
-        <div class="toolbar-brand" style="display:flex; align-items:center; gap:15px;">
-            <h2 style="color:var(--accent-gold); margin:0; font-size:1.4rem;">Super Éditeur</h2>
-            <button id="btn-drafts" class="btn-icon" title="Mes Brouillons" onclick="toggleDraftsPanel()">📂</button>
-        </div>
+    <!-- SIDEBAR -->
+    <aside class="editor-sidebar">
+        <!-- Fixed Header Section -->
+        <div class="sidebar-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="color:var(--accent-gold); margin:0;">Super Éditeur</h2>
+                <!-- Draft Manager Button -->
+                <button id="btn-drafts" class="btn-icon" title="Mes Brouillons"
+                    onclick="toggleDraftsPanel()">📂</button>
+            </div>
 
-        <div id="toolbar-container" style="flex:1; display:flex; justify-content:center; flex-wrap:wrap; background:transparent; border:none;">
-            <!-- Quill Toolbar formats will be injected here automatically by Quill or we define them -->
-            <span class="ql-formats">
-                <select class="ql-header">
-                    <option value="1">Titre 1</option>
-                    <option value="2">Titre 2</option>
-                    <option value="3">Titre 3</option>
-                    <option selected>Normal</option>
-                </select>
-            </span>
-            <span class="ql-formats">
-                <button class="ql-bold"></button>
-                <button class="ql-italic"></button>
-                <button class="ql-underline"></button>
-                <button class="ql-strike"></button>
-            </span>
-            <span class="ql-formats">
-                <select class="ql-align"></select>
-            </span>
-            <span class="ql-formats">
-                <button class="ql-list" value="ordered"></button>
-                <button class="ql-list" value="bullet"></button>
-            </span>
-            <span class="ql-formats">
-                <button class="ql-blockquote"></button>
-                <button class="ql-link"></button>
-                <button class="ql-image"></button>
-            </span>
-            <span class="ql-formats">
-                <button class="ql-insertFaq" title="Insérer FAQ" style="width:35px;">❓</button>
-                <button class="ql-insertCard" title="Insérer Carte" style="width:35px;">🃏</button>
-                <button class="ql-insertQuote" title="Insérer Citation" style="width:35px;">❝</button>
-                <button class="ql-insertNote" title="Insérer Note" style="width:35px;">💡</button>
-            </span>
-            <span class="ql-formats">
-                <button class="ql-clean"></button>
-            </span>
-        </div>
+            <!-- Metadata -->
+            <div class="input-group" style="margin-top:20px;">
+                <label>Titre de l'Article</label>
+                <div style="display:flex; gap:8px;">
+                    <select id="meta-icon" style="width:60px; text-align:center; font-size:1.2rem;">
+                        <option value="🍺">🍺</option>
+                        <option value="🍻">🍻</option>
+                        <option value="🌿">🌿</option>
+                        <option value="☕">☕</option>
+                        <option value="⛪">⛪</option>
+                        <option value="🌾">🌾</option>
+                        <option value="🍋">🍋</option>
+                        <option value="📖">📖</option>
+                        <option value="📜">📜</option>
+                        <option value="🎓">🎓</option>
+                        <option value="💡">💡</option>
+                        <option value="🏆">🏆</option>
+                    </select>
+                    <input type="text" id="meta-title" placeholder="Ex: Lager & Pilsner" style="flex:1;">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Sous-titre</label>
+                <input type="text" id="meta-subtitle" placeholder="Ex: La fraîcheur...">
+            </div>
+            <div class="input-group" style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label>Auteur</label>
+                    <input type="text" id="meta-author" placeholder="Nom" value="Beerpedia">
+                </div>
+                <div style="flex:1;">
+                    <label>Fonction</label>
+                    <input type="text" id="meta-role" placeholder="Beerologue" value="Éditeur">
+                </div>
+            </div>
 
-        <div class="toolbar-actions" style="display:flex; gap:10px;">
-            <button class="btn-secondary" style="padding:8px 15px; font-size:0.9rem;" onclick="document.getElementById('import-modal').classList.remove('hidden')">📥 Import</button>
-            <button class="btn-primary" style="padding:8px 15px; font-size:0.9rem;" onclick="downloadHTML()">📥 Télécharger</button>
-            <button class="btn-primary" style="background:var(--success); padding:8px 15px; font-size:0.9rem;" onclick="generateHTML()">✨ Exporter</button>
-        </div>
-    </header>
+            <!-- Primary Actions -->
+            <div style="display:flex; gap:8px; margin-top:15px;">
+                <button class="btn-primary" style="background:var(--success); flex:1;" onclick="generateHTML()">✨
+                    Exporter</button>
+                <button class="btn-primary" style="flex:1;" onclick="downloadHTML()">📥 Télécharger</button>
+            </div>
 
-    <div class="editor-content-area">
-        <!-- LEFT: WORKSPACE & PROPERTIES -->
-        <aside class="editor-workspace scroll-container">
-            
-            <!-- Metadata (Document Properties) -->
-            <div class="document-properties" style="padding:25px 25px 0 25px;">
-                <div class="editor-section-title">Propriétés de l'Article</div>
-                <div class="input-group" style="margin-bottom:15px;">
-                    <div style="display:flex; gap:8px;">
-                        <select id="meta-icon" style="width:60px; text-align:center; font-size:1.2rem;">
-                            <option value="🍺">🍺</option>
-                            <option value="🍻">🍻</option>
-                            <option value="🌿">🌿</option>
-                            <option value="☕">☕</option>
-                            <option value="⛪">⛪</option>
-                            <option value="🌾">🌾</option>
-                            <option value="🍋">🍋</option>
-                            <option value="📖">📖</option>
-                            <option value="📜">📜</option>
-                            <option value="🎓">🎓</option>
-                            <option value="💡">💡</option>
-                            <option value="🏆">🏆</option>
-                        </select>
-                        <input type="text" id="meta-title" placeholder="Titre de l'Article (ex: Lager)" style="flex:1;">
+            <!-- Firebase Actions -->
+            <div style="margin-top:15px; border-top:1px solid #333; padding-top:15px;">
+                <div id="auth-section">
+                    <button id="btn-login" class="btn-secondary" style="width:100%;">🔒 Connexion Firebase</button>
+                    <div id="login-form" class="hidden" style="margin-top:10px;">
+                        <input type="email" id="auth-email" placeholder="Email" class="form-input"
+                            style="width:100%; margin-bottom:5px;">
+                        <input type="password" id="auth-password" placeholder="Mot de passe" class="form-input"
+                            style="width:100%; margin-bottom:5px;">
+                        <button id="btn-auth-submit" class="btn-primary" style="width:100%;">Se connecter</button>
                     </div>
                 </div>
-                <div class="input-group" style="margin-bottom:15px;">
-                    <input type="text" id="meta-subtitle" placeholder="Sous-titre">
-                </div>
-                <div class="input-group" style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="meta-author" placeholder="Auteur" value="Beerpedia" style="flex:1;">
-                    <input type="text" id="meta-role" placeholder="Fonction" value="Éditeur" style="flex:1;">
+                <div id="user-section" class="hidden">
+                    <p style="color:var(--success); font-size:0.8rem; margin-bottom:5px;">Connecté en tant que <span
+                            id="user-email"></span></p>
+                    <button id="btn-publish" class="btn-primary"
+                        style="width:100%; background:var(--accent-gold); color:#000; font-weight:bold;">🚀 Publier en
+                        Ligne</button>
+                    <button id="btn-logout" class="btn-xs" style="margin-top:5px; width:100%;">Déconnexion</button>
                 </div>
 
-                <div class="editor-section-title" style="margin-top:25px;">Caractéristiques de la Bière</div>
-                <div class="input-group" style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="meta-temp" placeholder="Temp. (ex: 6-8°C)" style="flex:1;">
-                    <input type="text" id="meta-glass" placeholder="Verre (ex: Tulipe)" style="flex:1;">
-                </div>
-                <div class="input-group" style="display:flex; gap:5px; margin-bottom:15px;">
-                    <input type="text" id="meta-volume" placeholder="Vol (33cl)" style="flex:1;">
-                    <input type="text" id="meta-abv" placeholder="Alc (5%)" style="flex:1;">
-                    <input type="text" id="meta-style" placeholder="Type (IPA)" style="flex:1;">
-                </div>
             </div>
-            
-            <!-- Removed the old Block List #workspace -->
-        </aside>
 
-        <!-- RIGHT: PREVIEW & EDITOR -->
-        <main class="editor-preview scroll-container">
-            <!-- Quill Editor Container -->
-            <div id="editor-container" class="preview-word-page">
+            <div class="editor-section-title" style="margin-top:20px;">Ajouter un Bloc</div>
+            <div class="input-group">
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                    <button class="btn-xs" onclick="addBlock('header')">H3</button>
+                    <button class="btn-xs" onclick="addBlock('text')">TXT</button>
+                    <button class="btn-xs" onclick="addBlock('list')">List</button>
+                    <button class="btn-xs" onclick="addBlock('image')">IMG</button>
+                    <button class="btn-xs" onclick="addBlock('meta')">Info</button>
+                    <button class="btn-xs" onclick="addBlock('signature')">🏷️ Specs</button>
+                    <button class="btn-xs" style="color:var(--accent-gold); border-color:var(--accent-gold);"
+                        onclick="addBlock('callout')">Note</button>
+                    <button class="btn-xs" onclick="addBlock('quote')">❝ Citation</button>
+                    <button class="btn-xs" onclick="addBlock('faq')">❓ FAQ</button>
+                    <button class="btn-xs" onclick="addBlock('table')">📊 Table</button>
+                    <button class="btn-xs" onclick="addBlock('divider')">Div</button>
+                </div>
+                <button class="btn-secondary btn-sm" style="margin-top:5px;"
+                    onclick="document.getElementById('import-modal').classList.remove('hidden')">📥 Importer
+                    HTML</button>
             </div>
-        </main>
-    </div>
+            <div class="editor-section-title" style="margin-top:10px;">Espace de Travail</div>
+            <p style="font-size:0.7rem; color:#666; margin-bottom:10px;">💡 Ctrl+S: Sauver | Ctrl+E: Exporter |
+                Ctrl+B/I/U: Formatage</p>
+        </div>
 
-    <!-- Import Modal -->
+        <!-- Scrollable Workspace -->
+        <div id="workspace" class="block-list scroll-container">
+            <!-- Dynamic Blocks -->
+        </div>
+    </aside>
+
+    <!-- PREVIEW -->
+    <main class="editor-preview">
+        <div class="preview-phone-frame">
+            <!-- Rendered content -->
+            <div id="preview-content" style="height:100%; overflow-y:auto;"></div>
+        </div>
+    </main>
+
+    <!-- ═══════════════ IMPORT MODAL ═══════════════ -->
     <div id="import-modal" class="editor-modal-overlay hidden">
         <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Importer du Code HTML</h3>
-            <p style="color:#ccc; font-size:0.9rem;">Collez le code source d'un article existant ici :</p>
+            <h3>📥 Importer du HTML</h3>
+            <p>Collez le code source d'un article :</p>
             <textarea id="import-code" class="code-editor-area"></textarea>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('import-modal').classList.add('hidden')"
-                    class="btn-secondary">Annuler</button>
-                <button onclick="processImport()" class="btn-primary" style="width:auto;">Importer</button>
+            <div class="modal-actions">
+                <button class="toolbar-btn-ghost" id="btn-cancel-import">Annuler</button>
+                <button class="toolbar-btn-accent" id="btn-do-import">Importer</button>
             </div>
         </div>
     </div>
 
-    <!-- Drafts Panel -->
-    <div id="drafts-panel" class="drafts-panel hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:1rem; color:var(--accent-gold);">Mes Brouillons</h3>
-            <button class="btn-icon" onclick="toggleDraftsPanel()">✖</button>
-        </div>
-        <button class="btn-primary" onclick="createNewDraft()">+ Nouveau Brouillon</button>
-        <div id="drafts-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-            <!-- Draft items -->
-        </div>
-    </div>
-
-    <!-- Export Modal -->
+    <!-- ═══════════════ EXPORT MODAL ═══════════════ -->
     <div id="export-modal" class="editor-modal-overlay hidden">
         <div class="editor-modal-content" style="height:80vh;">
-            <h3 style="color:var(--accent-gold); margin:0;">Code HTML Généré</h3>
-            <p style="color:#ccc; font-size:0.9rem;">Copiez ce code dans un fichier <code>.html</code> :</p>
-            <textarea id="export-code" class="code-editor-area" style="flex:1; height:auto;"></textarea>
-            <div style="display:flex; justify-content:flex-end;">
-                <button class="btn-primary" style="width:auto;"
-                    onclick="document.getElementById('export-modal').classList.add('hidden')">Fermer</button>
+            <h3>✨ Code HTML Généré</h3>
+            <p>Copiez ce code dans un fichier <code>.html</code> :</p>
+            <textarea id="export-code" class="code-editor-area" style="flex:1;height:auto;"></textarea>
+            <div class="modal-actions">
+                <button class="toolbar-btn-accent" id="btn-close-export">Fermer</button>
             </div>
         </div>
     </div>
 
-    <!-- Block Modals -->
-    <!-- FAQ Modal -->
-    <div id="faq-modal" class="editor-modal-overlay hidden">
-        <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Éditer FAQ</h3>
-            <input type="text" id="faq-question" placeholder="Question ?">
-            <textarea id="faq-answer" placeholder="Réponse..." rows="4"></textarea>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('faq-modal').classList.add('hidden')" class="btn-secondary">Annuler</button>
-                <button onclick="saveFaqBlock()" class="btn-primary" style="width:auto;">Valider</button>
+    <!-- ═══════════════ BLOCK EDIT MODAL ═══════════════ -->
+    <div id="block-edit-modal" class="editor-modal-overlay hidden">
+        <div class="editor-modal-content block-edit-modal">
+            <h3 id="block-edit-title">Modifier le bloc</h3>
+            <div id="block-edit-fields"></div>
+            <div class="modal-actions">
+                <button class="toolbar-btn-ghost" id="btn-cancel-edit">Annuler</button>
+                <button class="toolbar-btn-accent" id="btn-save-edit">Enregistrer</button>
             </div>
         </div>
     </div>
 
-    <!-- Quote Modal -->
-    <div id="quote-modal" class="editor-modal-overlay hidden">
-        <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Éditer Citation</h3>
-            <textarea id="quote-text" placeholder="Citation..." rows="4"></textarea>
-            <input type="text" id="quote-author" placeholder="Auteur (optionnel)">
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('quote-modal').classList.add('hidden')" class="btn-secondary">Annuler</button>
-                <button onclick="saveQuoteBlock()" class="btn-primary" style="width:auto;">Valider</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Note Modal -->
-    <div id="note-modal" class="editor-modal-overlay hidden">
-        <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Éditer Note</h3>
-            <textarea id="note-text" placeholder="Contenu de la note..." rows="4"></textarea>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('note-modal').classList.add('hidden')" class="btn-secondary">Annuler</button>
-                <button onclick="saveNoteBlock()" class="btn-primary" style="width:auto;">Valider</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card Modal -->
-    <div id="card-modal" class="editor-modal-overlay hidden">
-        <div class="editor-modal-content">
-            <h3 style="color:var(--accent-gold); margin:0;">Éditer Carte</h3>
-            <input type="text" id="card-title" placeholder="Titre de la carte">
-            <textarea id="card-text" placeholder="Description..." rows="3"></textarea>
-            <input type="text" id="card-image" placeholder="URL de l'image (ex: ../images/beer.png)">
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="document.getElementById('card-modal').classList.add('hidden')" class="btn-secondary">Annuler</button>
-                <button onclick="saveCardBlock()" class="btn-primary" style="width:auto;">Valider</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quill.js Library -->
-    <script src="js/quill.min.js"></script>
-    <!-- Firebase SDK removed -->
+    <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/editor.js"></script>
 </body>
 

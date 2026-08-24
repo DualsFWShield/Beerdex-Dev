@@ -6,7 +6,8 @@ export const ARTICLES = [
         icon: '🍺',
         tags: ['Rafraîchissante', 'Légère', 'Dorée'],
         summary: "Les bières les plus répandues au monde. Fermentation basse, couleur dorée, goût croustillant et propre. C'est la bière 'par défaut'.",
-        pairing: 'Pizza, Burger, Salade'
+        pairing: 'Pizza, Burger, Salade',
+        glass: 'Chopes ou Verre à Pils'
     },
     {
         id: 'ipa',
@@ -15,7 +16,8 @@ export const ARTICLES = [
         icon: '🌿',
         tags: ['Amère', 'Aromatique', 'Houblonnée'],
         summary: "Des bières fortement houblonnées. Elles offrent une amertume prononcée et des arômes d'agrumes, de fruits tropicaux ou de résine.",
-        pairing: 'Plats épicés, Tacos, Curry'
+        pairing: 'Plats épicés, Tacos, Curry',
+        glass: 'Tulipe ou Verre à IPA'
     },
     {
         id: 'stout',
@@ -24,7 +26,8 @@ export const ARTICLES = [
         icon: '☕',
         tags: ['Noire', 'Torréfiée', 'Café'],
         summary: "Des bières sombres aux arômes de café, de cacao et de pain grillé. Souvent onctueuses (Stout) ou plus sèches (Porter).",
-        pairing: 'Desserts au chocolat, Huîtres, Ragoût'
+        pairing: 'Desserts au chocolat, Huîtres, Ragoût',
+        glass: 'Pinte ou Snifter'
     },
     {
         id: 'trappist',
@@ -33,7 +36,8 @@ export const ARTICLES = [
         icon: '⛪',
         tags: ['Complexe', 'Maltée', 'Forte'],
         summary: "Bières de tradition belge, souvent fortes (Dubbel, Tripel, Quadrupel). Des goûts de fruits mûrs, de caramel et d'épices.",
-        pairing: 'Fromages forts, Viandes rouges'
+        pairing: 'Fromages forts, Viandes rouges',
+        glass: 'Calice'
     },
     {
         id: 'saison',
@@ -42,7 +46,8 @@ export const ARTICLES = [
         icon: '🌾',
         tags: ['Sèche', 'Épicée', 'Fermière'],
         summary: "Originaire de Wallonie. Bière fermière, désaltérante mais complexe, souvent avec des notes poivrées ou citronnées.",
-        pairing: 'Fruits de mer, Fromage de chèvre'
+        pairing: 'Fruits de mer, Fromage de chèvre',
+        glass: 'Tulipe'
     },
     {
         id: 'sour',
@@ -51,7 +56,8 @@ export const ARTICLES = [
         icon: '🍋',
         tags: ['Acide', 'Sauvage', 'Fruité'],
         summary: "Fermentation spontanée (levures sauvages). Goût acidulé, parfois fruité (Kriek). Un style unique à Bruxelles et au Pajottenland.",
-        pairing: 'Moules-frites, Cheesecake'
+        pairing: 'Moules-frites, Cheesecake',
+        glass: 'Flûte ou Verre à facettes'
     },
     {
         id: 'temperature',
@@ -69,6 +75,7 @@ export const ARTICLES = [
         icon: '📖',
         tags: ['Histoire', 'Beerdex'],
         summary: "L'histoire de la création de Beerdex et notre philosophie.",
-        pairing: 'Lecture au coin du feu'
+        pairing: 'Lecture au coin du feu',
+        glass: 'Aucun (Lecture)'
     }
 ];

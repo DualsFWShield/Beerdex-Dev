@@ -51,7 +51,6 @@ self.addEventListener('activate', event => {
 
 // Fetch Event - Network First for HTML, Cache First for assets
 self.addEventListener('fetch', event => {
-    // Ignore non-GET requests (like Firebase writes)
     if (event.request.method !== 'GET') return;
 
     const url = new URL(event.request.url);

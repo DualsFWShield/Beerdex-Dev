@@ -38,6 +38,17 @@ export const GUIDE_HTML = `
         </div>
     </section>
 
+    <section class="guide-section" id="glassware-basics">
+        <h2>🍷 L'Art du Verre</h2>
+        <p class="intro-text">Le verre n'est pas qu'un contenant, c'est un outil de révélation des arômes.</p>
+        <div class="features-list">
+            <div class="feat-item"><strong>Tulipe / Snifter :</strong> Concentre les arômes complexes des bières fortes.</div>
+            <div class="feat-item"><strong>Pinte :</strong> Polyvalente, idéale pour les Ales et Stouts.</div>
+            <div class="feat-item"><strong>Calice :</strong> Large ouverture pour libérer les parfums des Trappistes.</div>
+            <div class="feat-item"><strong>Verre à Pils :</strong> Haut et étroit pour maintenir la pétillance et la mousse.</div>
+        </div>
+    </section>
+
     <section class="guide-section" id="beer-style-map">
         <h2>🧭 La Carte des Styles</h2>
         <p class="intro-text">Les bières se classent souvent selon deux axes majeurs : l'intensité (Alcool/Corps) et la Balance (Douceur/Amertume).</p>
