@@ -1,13 +1,11 @@
 import { GUIDE_HTML } from './guide_content.js';
 import { ARTICLES as LOCAL_ARTICLES } from './data.js';
-import { db, collection, getDocs, auth, signInAnonymously, onAuthStateChanged } from './firebase-config.js';
 
 const mainContent = document.getElementById('main-content');
-let ALL_ARTICLES = [...LOCAL_ARTICLES]; // Start with local
+let ALL_ARTICLES = [...LOCAL_ARTICLES];
 
 // Init
 function init() {
-    // Check for first launch of Beerpedia
     if (!localStorage.getItem('beerpedia_intro_seen')) {
         localStorage.setItem('beerpedia_intro_seen', 'true');
         window.location.href = 'articles/intro.html';
@@ -24,42 +22,9 @@ function renderGuide(container) {
     window.scrollTo(0, 0);
 
     // Wait for DOM to be ready before rendering articles
-    requestAnimationFrame(async () => {
-        // Ensure Anonymous Auth for Reading
-        try {
-            await new Promise((resolve) => {
-                if (auth.currentUser) resolve();
-                else {
-                    signInAnonymously(auth).then(resolve).catch(e => {
-                        console.warn("Auth Anonyme échouée", e);
-                        resolve(); // Continue anyway, maybe rules are public
-                    });
-                }
-            });
-        } catch (e) { console.log("Auth setup check failed", e); }
-
-        // Fetch Online Articles
-        try {
-            const querySnapshot = await getDocs(collection(db, "articles"));
-            const onlineArticles = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                onlineArticles.push({
-                    id: doc.id,
-                    title: data.title,
-                    file: `article.html?id=${doc.id}`, // Dynamic Link
-                    icon: data.icon,
-                    tags: data.tags || [],
-                    summary: data.subtitle || 'Article publié par la communauté.',
-                    pairing: '' // Optional
-                });
-            });
-
-            // Merge: Online first or last? Let's put them first.
-            ALL_ARTICLES = [...onlineArticles, ...LOCAL_ARTICLES];
-        } catch (e) {
-            console.log("Could not fetch online articles (offline or config missing):", e);
-        }
+    requestAnimationFrame(() => {
+        // Firebase has been removed. Only use local articles.
+        ALL_ARTICLES = [...LOCAL_ARTICLES];
 
         // Render Articles (Initial Load - All)
         renderArticles();

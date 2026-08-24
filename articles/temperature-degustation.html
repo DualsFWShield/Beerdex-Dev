@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Température Idéale - Beerpedia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <!-- Render Shell (Header/Nav) -->
+    <div id="app">
+        <header class="app-header">
+            <div class="logo">
+                <a href="../index.html"
+                    style="text-decoration:none; display:flex; align-items:center; gap:10px; color:inherit;">
+                    <img src="../icons/logo-bnr.png" width="32" height="32" alt="Beerpedia Logo">
+                    <h1>Beerpedia</h1>
+                </a>
+            </div>
+            <a href="../index.html" class="icon-btn" aria-label="Retour">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+        </header>
+
+        <main id="main-content" class="scroll-container">
+            <div class="article-container fade-in">
+                <header class="article-header">
+                    <div class="article-icon">🌡️</div>
+                    <h1>Température de Dégustation</h1>
+                    <p class="subtitle">Ne buvez plus votre bière trop froide !</p>
+                </header>
+
+                <div class="article-content">
+                    <h3>🧊 Pourquoi la température compte-t-elle autant ?</h3>
+                    <p>Servir une bière glacée (proche de 0°C) anesthésie vos papilles et masque la majorité de ses arômes. Si cela peut convenir à une Lager industrielle de soif dont on veut cacher les défauts, c'est un sacrilège pour une bière artisanale ! À l'inverse, une bière servie trop chaude fera ressortir excessivement l'alcool et l'amertume.</p>
+                    
+                    <h3>⚖️ La règle d'or (ABV)</h3>
+                    <p>Si vous ne connaissez pas le style exact de la bière, une règle simple : alignez la température de service sur son taux d'alcoolémie :</p>
+                    <ul>
+                        <li>Bière à <strong>5% ABV</strong> ➔ Service autour de <strong>5°C</strong></li>
+                        <li>Bière à <strong>8% ABV</strong> ➔ Service autour de <strong>8°C</strong></li>
+                        <li>Imperial Stout à <strong>11% ABV</strong> ➔ Service autour de <strong>11°C</strong></li>
+                    </ul>
+
+                    <h3>🌡️ Température par style de bière</h3>
+                    <ul>
+                        <li><strong>3 à 5°C (Très frais) :</strong> Lagers blondes, Pilsners, Bières sans alcool. Le froid intense accentue le côté vif et rafraîchissant.</li>
+                        <li><strong>5 à 7°C (Frais) :</strong> Blanches (Witbier), Berliner Weisse, Pale Ales légères. Le froid souligne l'acidité et les agrumes.</li>
+                        <li><strong>7 à 10°C (Tempéré) :</strong> IPA, NEIPA, APA, Ambrées. Une température légèrement remontée permet aux houblons de s'exprimer.</li>
+                        <li><strong>10 à 14°C (Température de cave) :</strong> Stouts, Porters, Barleywines, Trappistes. La chaleur dévoile les malts torréfiés (café, chocolat).</li>
+                    </ul>
+
+                    <h3>⏳ Combien de temps pour rafraîchir ?</h3>
+                    <p>Pour amener une bière de la température ambiante (20°C) à température de dégustation :</p>
+                    <ul>
+                        <li><strong>Réfrigérateur (4°C) :</strong> 1h à 1h30 pour une canette (33cl), 1h30 à 2h pour une bouteille en verre.</li>
+                        <li><strong>Congélateur (-18°C) :</strong> 15 à 20 minutes maximum ! <br><em>Astuce : Entourez la bouteille d'essuie-tout mouillé pour diviser le temps par deux.</em></li>
+                    </ul>
+                </div>
+
+                <div style="height: 100px;"></div>
+            </div>
+        </main>
+    </div>
+
+<script src="../js/runtime.js"></script></body>
+
+</html>

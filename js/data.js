@@ -54,6 +54,15 @@ export const ARTICLES = [
         pairing: 'Moules-frites, Cheesecake'
     },
     {
+        id: 'temperature',
+        title: 'Température de Dégustation',
+        file: 'articles/temperature-degustation.html',
+        icon: '🌡️',
+        tags: ['Conseil', 'Pratique'],
+        summary: "Découvrez à quelle température déguster chaque type de bière pour en révéler tous les arômes, et comment les rafraîchir efficacement.",
+        pairing: 'Toutes les bières'
+    },
+    {
         id: 'intro',
         title: 'Intro & Origines',
         file: 'articles/intro.html',

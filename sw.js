@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Beerpedia-v4';
+const CACHE_NAME = 'Beerpedia-v5';
 const ASSETS = [
     './',
     './index.html',
@@ -18,7 +18,8 @@ const ASSETS = [
     './articles/stout.html',
     './articles/trappist.html',
     './articles/saison.html',
-    './articles/sour.html'
+    './articles/sour.html',
+    './articles/temperature-degustation.html'
 ];
 
 // Install Event
